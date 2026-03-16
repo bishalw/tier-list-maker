@@ -22,7 +22,7 @@ export const EditTierModal = ({ editingTierId, onClose }: Props) => {
       onOpenChange={(isOpen) => {
         if (!isOpen) onClose();
       }}
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 data-[entering]:animate-in data-[entering]:fade-in data-[exiting]:animate-out data-[exiting]:fade-out"
+      className="fixed inset-0 z-50 bg-overlay backdrop-blur-sm flex items-center justify-center p-4 data-[entering]:animate-in data-[entering]:fade-in data-[exiting]:animate-out data-[exiting]:fade-out"
     >
       <Modal className="bg-surface rounded-panel p-6 w-full max-w-sm border border-border-main shadow-panel data-[entering]:animate-in data-[entering]:zoom-in-95 data-[exiting]:animate-out data-[exiting]:zoom-out-95 outline-none">
         <Dialog className="outline-none">
@@ -37,7 +37,7 @@ export const EditTierModal = ({ editingTierId, onClose }: Props) => {
                     className="flex flex-col gap-1.5"
                   >
                     <Label className="text-sm font-medium text-text-muted">Label</Label>
-                    <Input className="w-full bg-bg-main border border-border-main rounded-item px-4 py-2.5 text-text-main focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    <Input className="w-full bg-bg-main border border-border-main rounded-item px-4 py-2.5 text-text-main focus:outline-none focus:ring-2 focus:ring-focus-ring" />
                   </TextField>
                   
                   <div className="flex flex-col gap-3">
@@ -56,7 +56,7 @@ export const EditTierModal = ({ editingTierId, onClose }: Props) => {
                     >
                       <Input 
                         aria-label="Tier Color Hex"
-                        className="w-full bg-bg-main border border-border-main rounded-item px-4 py-2.5 text-text-main focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase" 
+                        className="w-full bg-bg-main border border-border-main rounded-item px-4 py-2.5 text-text-main focus:outline-none focus:ring-2 focus:ring-focus-ring uppercase" 
                       />
                     </TextField>
                   </div>
@@ -67,13 +67,13 @@ export const EditTierModal = ({ editingTierId, onClose }: Props) => {
                         deleteTier(editingTier.id);
                         close();
                       }}
-                      className="text-red-500 hover:text-red-400 flex items-center gap-1.5 px-3 py-2 rounded-item hover:bg-red-500/10 transition-colors font-medium outline-none focus-visible:ring-2 focus-visible:ring-red-500"
+                      className="text-danger hover:brightness-110 flex items-center gap-1.5 px-3 py-2 rounded-item hover:bg-danger-soft transition-colors font-medium outline-none focus-visible:ring-2 focus-visible:ring-danger"
                     >
                       <Trash2 size={16} /> Delete
                     </RACButton>
                     <RACButton
                       onPress={close}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-item transition-colors font-medium outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                      className="bg-accent hover:bg-accent-hover text-accent-foreground px-5 py-2 rounded-item transition-colors font-medium outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
                     >
                       Done
                     </RACButton>

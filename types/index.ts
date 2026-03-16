@@ -2,6 +2,7 @@ export type ItemType = 'image' | 'text';
 export type ItemSize = 'small' | 'medium' | 'large';
 export type ImageFit = 'cover' | 'contain';
 export type Theme = 'modern' | 'brutalist' | 'luxury';
+export type BoardBackground = 'theme-default' | string;
 
 export interface Item {
   id: string;
@@ -21,6 +22,6 @@ export interface TierBoardState {
   items: Item[];
   itemSize: ItemSize;
   imageFit: ImageFit;
-  boardBackground: string;
+  boardBackground: BoardBackground;
   theme: Theme;
 }

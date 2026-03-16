@@ -1,28 +1,22 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { temporal } from 'zundo';
-import { Item, Tier, ItemSize, ImageFit, Theme, TierBoardState } from '../types';
-
-export const DEFAULT_TIERS: Tier[] = [
-  { id: 's', label: 'S', color: '#ff7f7f' },
-  { id: 'a', label: 'A', color: '#ffbf7f' },
-  { id: 'b', label: 'B', color: '#ffff7f' },
-  { id: 'c', label: 'C', color: '#7fff7f' },
-  { id: 'd', label: 'D', color: '#7fbfff' },
-];
+import { Item, Tier, ItemSize, ImageFit, Theme, TierBoardState, BoardBackground } from '../types';
+import { createDefaultTiers, THEME_DEFAULT_BOARD_BACKGROUND } from '../constants/theme';
 
 interface TierState {
   tiers: Tier[];
   items: Item[];
   itemSize: ItemSize;
   imageFit: ImageFit;
-  boardBackground: string;
+  boardBackground: BoardBackground;
   theme: Theme;
   
   // Actions
   setItemSize: (size: ItemSize) => void;
   setImageFit: (fit: ImageFit) => void;
   setBoardBackground: (color: string) => void;
+  resetBoardBackground: () => void;
   setTheme: (theme: Theme) => void;
   reorderTiers: (startIndex: number, endIndex: number) => void;
   moveItem: (sourceTierId: string | null, destTierId: string | null, sourceIndex: number, destIndex: number) => void;
@@ -42,16 +36,17 @@ export const useTierStore = create<TierState>()(
   temporal(
     persist(
       (set) => ({
-        tiers: DEFAULT_TIERS,
+        tiers: createDefaultTiers('modern'),
         items: [],
         itemSize: 'medium',
         imageFit: 'cover',
-        boardBackground: 'transparent',
+        boardBackground: THEME_DEFAULT_BOARD_BACKGROUND,
         theme: 'modern',
 
         setItemSize: (size) => set({ itemSize: size }),
         setImageFit: (fit) => set({ imageFit: fit }),
-        setBoardBackground: (color) => set({ boardBackground: color }),
+        setBoardBackground: (color) => set({ boardBackground: color as BoardBackground }),
+        resetBoardBackground: () => set({ boardBackground: THEME_DEFAULT_BOARD_BACKGROUND }),
         setTheme: (theme) => set({ theme }),
 
         hydrateBoardState: (newState) => set({
@@ -123,7 +118,7 @@ export const useTierStore = create<TierState>()(
       
       deleteAllItems: () => set({ items: [] }),
       
-      resetTiers: () => set({ tiers: DEFAULT_TIERS }),
+      resetTiers: () => set((state) => ({ tiers: createDefaultTiers(state.theme) })),
 
       applyTemplate: (newTiers) => set((state) => ({
         tiers: newTiers,

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { THEME_DEFAULT_BOARD_BACKGROUND } from '../constants/theme';
 import {
   createTierListInputSchema,
   submitRemixInputSchema,
@@ -11,7 +12,7 @@ test('tier board schema accepts valid board state', () => {
     tiers: [{ id: 's', label: 'S', color: '#fff000' }],
     items: [{ id: 'item-1', content: 'Mario', type: 'text', tierId: null }],
     theme: 'modern',
-    boardBackground: 'transparent',
+    boardBackground: THEME_DEFAULT_BOARD_BACKGROUND,
     itemSize: 'medium',
     imageFit: 'cover',
   });
@@ -27,7 +28,7 @@ test('create tier list schema rejects invalid theme', () => {
         tiers: [{ id: 's', label: 'S', color: '#fff000' }],
         items: [],
         theme: 'space',
-        boardBackground: 'transparent',
+        boardBackground: THEME_DEFAULT_BOARD_BACKGROUND,
         itemSize: 'medium',
         imageFit: 'cover',
       },

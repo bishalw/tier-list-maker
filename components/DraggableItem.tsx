@@ -47,7 +47,7 @@ export const DraggableItem = memo(({ item, index, isReadOnly, originalItem, tier
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           className={`relative group ${isReadOnly ? '' : 'cursor-grab active:cursor-grabbing'} rounded-item overflow-hidden bg-surface-hover border flex items-center justify-center transition-shadow ${
-            snapshot.isDragging ? 'border-blue-500 shadow-floating z-50 scale-105 rotate-2' : 'border-border-main hover:ring-2 hover:ring-blue-500'
+            snapshot.isDragging ? 'border-accent shadow-floating z-50 scale-105 rotate-2' : 'border-border-main hover:ring-2 hover:ring-focus-ring'
           } ${
             item.type === 'image' ? sizeClasses[itemSize] : 'px-4 py-2 min-w-[80px] min-h-[40px]'
           }`}
@@ -64,9 +64,9 @@ export const DraggableItem = memo(({ item, index, isReadOnly, originalItem, tier
 
           {showDiff && (
             <div className={`absolute bottom-1 right-1 rounded-full p-0.5 flex items-center justify-center shadow-sm backdrop-blur-md ${
-              rankDiff > 0 ? 'bg-green-500/80 text-white' : 
-              rankDiff < 0 ? 'bg-red-500/80 text-white' : 
-              'bg-gray-500/80 text-white'
+              rankDiff > 0 ? 'bg-success text-success-foreground' : 
+              rankDiff < 0 ? 'bg-danger text-danger-foreground' : 
+              'bg-warning text-warning-foreground'
             }`}>
               {rankDiff > 0 ? <ArrowUp size={14} strokeWidth={3} /> : 
                rankDiff < 0 ? <ArrowDown size={14} strokeWidth={3} /> : 
@@ -81,7 +81,7 @@ export const DraggableItem = memo(({ item, index, isReadOnly, originalItem, tier
                 deleteItem(item.id);
               }}
               onPointerDown={(e) => e.stopPropagation()}
-              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              className="absolute top-1 right-1 bg-danger text-danger-foreground rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
             >
               <X size={12} />
             </button>

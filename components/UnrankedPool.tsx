@@ -91,7 +91,7 @@ export const UnrankedPool = memo(({ items, isReadOnly, originalItems, tiers }: P
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search..."
-              className="bg-surface border border-border-main rounded-item pl-9 pr-3 py-1.5 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-blue-500 w-full transition-all"
+              className="bg-surface border border-border-main rounded-item pl-9 pr-3 py-1.5 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-focus-ring w-full transition-all"
             />
           </div>
         </div>
@@ -111,7 +111,7 @@ export const UnrankedPool = memo(({ items, isReadOnly, originalItems, tiers }: P
                     }
                   }}
                   placeholder="Paste list (comma or newline separated)..."
-                  className="bg-surface border border-border-main rounded-item px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-blue-500 w-full min-h-[40px] max-h-[150px] resize-y"
+                  className="bg-surface border border-border-main rounded-item px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-focus-ring w-full min-h-[40px] max-h-[150px] resize-y"
                   rows={1}
                 />
               </div>
@@ -150,7 +150,7 @@ export const UnrankedPool = memo(({ items, isReadOnly, originalItems, tiers }: P
             ref={provided.innerRef}
             {...provided.droppableProps}
             className={`flex-1 min-h-[200px] overflow-y-auto bg-surface/50 border-2 border-dashed rounded-panel p-4 flex flex-wrap content-start gap-3 transition-colors ${
-              snapshot.isDraggingOver ? 'border-blue-500/50 bg-blue-500/5' : 'border-border-main'
+              snapshot.isDraggingOver ? 'border-accent bg-accent-soft' : 'border-border-main'
             }`}
           >
             {items.length === 0 && !snapshot.isDraggingOver ? (

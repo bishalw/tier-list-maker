@@ -1,5 +1,6 @@
 import type { ReadonlyURLSearchParams } from 'next/navigation';
 import type { TierBoardState } from '../../types';
+import { normalizeBoardBackground } from '../../constants/theme';
 import {
   createTierListInputSchema,
   submitRemixInputSchema,
@@ -20,7 +21,7 @@ export function mapTierListRowToRecord(row: TierListRow): TierListRecord {
     tiers: row.tiers,
     items: row.items,
     theme: row.theme,
-    boardBackground: row.board_background,
+    boardBackground: normalizeBoardBackground(row.board_background),
     itemSize: row.item_size,
     imageFit: row.image_fit,
   });

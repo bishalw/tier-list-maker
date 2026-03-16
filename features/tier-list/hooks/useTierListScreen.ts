@@ -223,6 +223,7 @@ export function useTierListScreen() {
     routeState,
     setViewMode,
     tiers,
+    theme,
     viewMode,
     moveItem,
   };

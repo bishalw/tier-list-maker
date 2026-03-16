@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { THEME_DEFAULT_BOARD_BACKGROUND } from '../../constants/theme';
 
 export const themeSchema = z.enum(['modern', 'brutalist', 'luxury']);
 export const itemTypeSchema = z.enum(['image', 'text']);
@@ -22,7 +23,7 @@ export const tierBoardStateSchema = z.object({
   tiers: z.array(tierSchema).min(1),
   items: z.array(itemSchema),
   theme: themeSchema,
-  boardBackground: z.string().min(1),
+  boardBackground: z.union([z.literal(THEME_DEFAULT_BOARD_BACKGROUND), z.string().min(1)]),
   itemSize: itemSizeSchema,
   imageFit: imageFitSchema,
 });

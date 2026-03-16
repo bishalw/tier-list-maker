@@ -21,7 +21,7 @@ export const TierRow = memo(({ tier, index, items, onEdit, isReadOnly, originalI
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`flex border-b border-border-main min-h-[100px] group/row bg-transparent transition-colors duration-300 ${snapshot.isDragging ? 'z-50 shadow-panel ring-2 ring-blue-500 bg-surface' : ''}`}
+          className={`flex border-b border-border-main min-h-[100px] group/row bg-transparent transition-colors duration-300 ${snapshot.isDragging ? 'z-50 shadow-panel ring-2 ring-focus-ring bg-surface' : ''}`}
         >
           {/* Tier Label (Drag Handle) */}
           <div
@@ -42,7 +42,7 @@ export const TierRow = memo(({ tier, index, items, onEdit, isReadOnly, originalI
                     onEdit(tier.id);
                   }}
                   onPointerDown={(e) => e.stopPropagation()}
-                  className="p-1.5 bg-black/30 hover:bg-black/50 rounded-md text-white backdrop-blur-sm transition-colors cursor-pointer"
+                  className="p-1.5 bg-overlay hover:brightness-110 rounded-md text-accent-foreground backdrop-blur-sm transition-colors cursor-pointer"
                   title="Settings"
                 >
                   <Settings size={14} />
@@ -52,7 +52,7 @@ export const TierRow = memo(({ tier, index, items, onEdit, isReadOnly, originalI
 
             {/* Grip Icon */}
             {!isReadOnly && (
-              <div className="absolute left-1 opacity-0 group-hover/label:opacity-100 transition-opacity text-black/40 pointer-events-none">
+              <div className="absolute left-1 opacity-0 group-hover/label:opacity-100 transition-opacity text-text-muted/60 pointer-events-none">
                 <GripVertical size={18} />
               </div>
             )}

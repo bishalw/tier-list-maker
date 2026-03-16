@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { THEME_DEFAULT_BOARD_BACKGROUND } from '../constants/theme';
 import { mapSearchParamsToRouteState, mapTierListRowToRecord } from '../features/tier-list/mappers';
 
 test('mapSearchParamsToRouteState derives target list from list param', () => {
@@ -37,6 +38,6 @@ test('mapTierListRowToRecord maps db shape to board state shape', () => {
   });
 
   assert.equal(record.ownerId, 'user-1');
-  assert.equal(record.boardState.boardBackground, 'transparent');
+  assert.equal(record.boardState.boardBackground, THEME_DEFAULT_BOARD_BACKGROUND);
   assert.equal(record.remixCount, 2);
 });

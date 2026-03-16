@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useStore } from 'zustand';
 import { useTierStore } from '../../../store/useTierStore';
+import { getEffectiveBoardBackground } from '../../../constants/theme';
 import { createTierListAction, submitRemixAction, updateTierListAction } from '../actions';
 import { mapBoardStateToCreateInput, mapBoardStateToUpdateInput } from '../mappers';
 import { ensureAnonymousSession } from '../../../lib/supabase/auth';
@@ -46,11 +47,7 @@ export function useTierListCommands({ listId, remixingId, isReadOnly }: Params) 
     setIsExporting(true);
     try {
       const { default: html2canvas } = await import('html2canvas');
-      const bgColor =
-        boardBackground !== 'transparent' && boardBackground
-          ? boardBackground
-          : getComputedStyle(document.documentElement).getPropertyValue('--theme-bg').trim() ||
-            '#111827';
+      const bgColor = getEffectiveBoardBackground(theme, boardBackground);
 
       const canvas = await html2canvas(element, {
         useCORS: true,

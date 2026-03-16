@@ -59,6 +59,8 @@ const SETTINGS_SECTIONS = {
 
 interface Props {
   boardBackground: string;
+  boardBackgroundLabel: string;
+  effectiveBoardBackground: string;
   canRedo: boolean;
   canUndo: boolean;
   copied: boolean;
@@ -73,6 +75,7 @@ interface Props {
   theme: Theme;
   onApplyTemplate: (tiers: Tier[]) => void;
   onBoardBackgroundChange: (color: string) => void;
+  onBoardBackgroundReset: () => void;
   onCopy: () => void;
   onDeleteAllItems: () => void;
   onExport: () => void;
@@ -90,6 +93,8 @@ interface Props {
 
 export const Toolbar = ({
   boardBackground,
+  boardBackgroundLabel,
+  effectiveBoardBackground,
   canRedo,
   canUndo,
   copied,
@@ -104,6 +109,7 @@ export const Toolbar = ({
   theme,
   onApplyTemplate,
   onBoardBackgroundChange,
+  onBoardBackgroundReset,
   onCopy,
   onDeleteAllItems,
   onExport,
@@ -124,12 +130,12 @@ export const Toolbar = ({
       onClick={onPress}
       className={`flex items-center justify-between gap-3 px-3 py-2 rounded-item border transition-colors text-left ${
         isActive
-          ? 'border-blue-500 bg-blue-500/10 text-text-main'
+          ? 'border-accent bg-accent-soft text-text-main'
           : 'border-border-main bg-bg-main text-text-muted hover:bg-surface-hover hover:text-text-main'
       }`}
     >
       <span>{label}</span>
-      {isActive && <div className="w-2 h-2 rounded-full bg-blue-500" />}
+      {isActive && <div className="w-2 h-2 rounded-full bg-accent" />}
     </button>
   );
 
@@ -167,7 +173,7 @@ export const Toolbar = ({
 
         {!isReadOnly && (
           <DialogTrigger>
-            <RACButton className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover text-text-main px-4 py-2.5 rounded-panel font-medium transition-all shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+            <RACButton className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover text-text-main px-4 py-2.5 rounded-panel font-medium transition-all shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">
               <Settings size={18} />
               Settings
             </RACButton>
@@ -212,7 +218,7 @@ export const Toolbar = ({
                           onClick={() => onItemSizeChange(option.value)}
                           className={`flex items-center justify-between gap-3 px-3 py-2 rounded-item border transition-colors text-left ${
                             itemSize === option.value
-                              ? 'border-blue-500 bg-blue-500/10 text-text-main'
+                              ? 'border-accent bg-accent-soft text-text-main'
                               : 'border-border-main bg-bg-main text-text-muted hover:bg-surface-hover hover:text-text-main'
                           }`}
                         >
@@ -221,7 +227,7 @@ export const Toolbar = ({
                             {option.label}
                           </span>
                           {itemSize === option.value && (
-                            <div className="w-2 h-2 rounded-full bg-blue-500" />
+                            <div className="w-2 h-2 rounded-full bg-accent" />
                           )}
                         </button>
                       );
@@ -249,11 +255,18 @@ export const Toolbar = ({
                     <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
                       Board Background
                     </h3>
-                    <span className="text-xs text-text-muted">{boardBackground}</span>
+                    <span className="text-xs text-text-muted">{boardBackgroundLabel}</span>
                   </div>
+                  <button
+                    type="button"
+                    onClick={onBoardBackgroundReset}
+                    className="self-start text-sm text-accent hover:text-accent-hover transition-colors"
+                  >
+                    Reset to theme default
+                  </button>
                   <div className="px-1 pb-1">
                     <HexColorPicker
-                      color={boardBackground}
+                      color={effectiveBoardBackground}
                       onChange={onBoardBackgroundChange}
                       className="!w-full !h-32"
                     />
@@ -266,7 +279,7 @@ export const Toolbar = ({
 
         {!isReadOnly && (
           <MenuTrigger>
-            <RACButton className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover text-text-main px-4 py-2.5 rounded-panel font-medium transition-all shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+            <RACButton className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover text-text-main px-4 py-2.5 rounded-panel font-medium transition-all shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">
               <LayoutTemplate size={18} />
               Templates
             </RACButton>
@@ -292,7 +305,7 @@ export const Toolbar = ({
 
         {!isReadOnly && (
           <MenuTrigger>
-            <RACButton className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover text-text-main px-4 py-2.5 rounded-panel font-medium transition-all shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+            <RACButton className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover text-text-main px-4 py-2.5 rounded-panel font-medium transition-all shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">
               <RotateCcw size={18} />
               Reset...
             </RACButton>
@@ -306,7 +319,7 @@ export const Toolbar = ({
                 </MenuItem>
                 <MenuItem
                   onAction={onDeleteAllItems}
-                  className="flex items-center gap-2 px-3 py-2 rounded-item cursor-pointer hover:bg-red-500/10 text-red-500 outline-none focus:bg-red-500/10"
+                  className="flex items-center gap-2 px-3 py-2 rounded-item cursor-pointer hover:bg-danger-soft text-danger outline-none focus:bg-danger-soft"
                 >
                   <Trash size={16} /> Delete all items
                 </MenuItem>
@@ -326,12 +339,12 @@ export const Toolbar = ({
           <DialogTrigger>
             <RACButton
               onPress={onShare}
-              className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-panel font-medium transition-all shadow-panel"
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-accent-foreground px-5 py-2.5 rounded-panel font-medium transition-all shadow-panel"
             >
               <Share2 size={18} />
               {isSharing ? 'Saving...' : 'Share'}
             </RACButton>
-            <ModalOverlay className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 data-[entering]:animate-in data-[entering]:fade-in data-[exiting]:animate-out data-[exiting]:fade-out">
+            <ModalOverlay className="fixed inset-0 z-50 bg-overlay backdrop-blur-sm flex items-center justify-center p-4 data-[entering]:animate-in data-[entering]:fade-in data-[exiting]:animate-out data-[exiting]:fade-out">
               <Modal className="bg-surface border border-border-main rounded-panel shadow-panel w-full max-w-md p-6 data-[entering]:animate-in data-[entering]:zoom-in-95 data-[exiting]:animate-out data-[exiting]:zoom-out-95 outline-none">
                 <Dialog className="outline-none">
                   {({ close }) => (
@@ -354,7 +367,7 @@ export const Toolbar = ({
                             className="bg-surface-hover hover:bg-border-main text-text-main p-2 rounded-item transition-colors"
                           >
                             {copied ? (
-                              <Check size={18} className="text-green-500" />
+                              <Check size={18} className="text-success" />
                             ) : (
                               <Copy size={18} />
                             )}
@@ -362,7 +375,7 @@ export const Toolbar = ({
                         </div>
                       ) : (
                         <div className="h-10 flex items-center justify-center">
-                          <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                          <div className="w-6 h-6 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
                         </div>
                       )}
 
@@ -385,7 +398,7 @@ export const Toolbar = ({
         {isReadOnly && (
           <button
             onClick={onRemix}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-panel font-medium transition-all shadow-panel"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-accent-foreground px-5 py-2.5 rounded-panel font-medium transition-all shadow-panel"
           >
             <Edit3 size={18} />
             Remix this List
@@ -396,7 +409,7 @@ export const Toolbar = ({
           <button
             onClick={onSubmitRemix}
             disabled={isSubmittingRemix}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-panel font-medium transition-all shadow-panel disabled:opacity-70 disabled:cursor-not-allowed"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-success hover:brightness-110 text-success-foreground px-5 py-2.5 rounded-panel font-medium transition-all shadow-panel disabled:opacity-70 disabled:cursor-not-allowed"
           >
             <Send size={18} />
             {isSubmittingRemix ? 'Submitting...' : 'Submit Remix'}
