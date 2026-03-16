@@ -1,0 +1,57 @@
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@theme {
+  --color-bg-main: var(--theme-bg);
+  --color-surface: var(--theme-surface);
+  --color-surface-hover: var(--theme-surface-hover);
+  --color-border-main: var(--theme-border);
+  --color-text-main: var(--theme-text);
+  --color-text-muted: var(--theme-text-muted);
+  --radius-panel: var(--theme-radius-panel);
+  --radius-item: var(--theme-radius-item);
+  --shadow-panel: var(--theme-shadow-panel);
+  --shadow-floating: var(--theme-shadow-floating);
+}
+
+/* 1. Default / Modern Dark Theme */
+:root, [data-theme="modern"] {
+  --theme-bg: #030712;         /* Very dark gray (gray-950) */
+  --theme-surface: #111827;    /* Lighter gray for cards (gray-900) */
+  --theme-surface-hover: #1f2937; /* Hover state (gray-800) */
+  --theme-border: #1f2937;     /* Subtle border (gray-800) */
+  --theme-text: #f3f4f6;       /* Primary text (gray-100) */
+  --theme-text-muted: #9ca3af; /* Secondary text (gray-400) */
+  --theme-radius-panel: 1rem;  /* Smooth rounded corners */
+  --theme-radius-item: 0.5rem; /* Item corners */
+  --theme-shadow-panel: 0 25px 50px -12px rgba(0,0,0,0.5); /* Soft shadow */
+  --theme-shadow-floating: 0 25px 50px -12px rgba(59, 130, 246, 0.25);
+}
+
+/* 2. Neo-Brutalist Theme */
+[data-theme="brutalist"] {
+  --theme-bg: #e5e7eb;         /* Light gray background */
+  --theme-surface: #ffffff;    /* Pure white cards */
+  --theme-surface-hover: #f3f4f6; /* Light hover */
+  --theme-border: #000000;     /* Harsh black borders */
+  --theme-text: #000000;       /* Black text */
+  --theme-text-muted: #4b5563; /* Gray text */
+  --theme-radius-panel: 0px;   /* Sharp, square corners */
+  --theme-radius-item: 0px;    /* Sharp items */
+  --theme-shadow-panel: 6px 6px 0px 0px #000000; /* Hard block shadow */
+  --theme-shadow-floating: 12px 12px 0px 0px #000000;
+}
+
+/* 3. Pure Dark Luxury Theme */
+[data-theme="luxury"] {
+  --theme-bg: #000000;         /* Pitch black */
+  --theme-surface: #000000;    /* Pitch black */
+  --theme-surface-hover: #171717; /* Very dark gray */
+  --theme-border: #262626;     /* Very thin, subtle gray */
+  --theme-text: #fafafa;       /* White text */
+  --theme-text-muted: #a3a3a3; /* Muted text */
+  --theme-radius-panel: 0.25rem; /* Barely rounded */
+  --theme-radius-item: 0.125rem; /* Barely rounded */
+  --theme-shadow-panel: none;  /* No shadows, purely flat */
+  --theme-shadow-floating: 0 0 0 1px #3b82f6; /* Just a blue ring */
+}
