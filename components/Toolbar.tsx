@@ -1,4 +1,7 @@
+'use client';
+
 import React from 'react';
+import dynamic from 'next/dynamic';
 import {
   Download,
   RotateCcw,
@@ -29,9 +32,30 @@ import {
   Modal,
   ModalOverlay,
 } from 'react-aria-components';
-import { HexColorPicker } from 'react-colorful';
 import { TIER_TEMPLATES } from '../constants/templates';
 import type { ImageFit, ItemSize, Theme, Tier } from '../types';
+
+const HexColorPicker = dynamic(
+  () => import('react-colorful').then((module) => module.HexColorPicker),
+  { ssr: false },
+);
+
+const SETTINGS_SECTIONS = {
+  theme: [
+    { value: 'modern', label: 'Modern Dark' },
+    { value: 'brutalist', label: 'Neo-Brutalist' },
+    { value: 'luxury', label: 'Pure Luxury' },
+  ] as const,
+  itemSize: [
+    { value: 'small', label: 'Small', icon: Minimize },
+    { value: 'medium', label: 'Medium', icon: ImageIcon },
+    { value: 'large', label: 'Large', icon: Maximize },
+  ] as const,
+  imageFit: [
+    { value: 'cover', label: 'Crop to Fill' },
+    { value: 'contain', label: 'Fit Inside' },
+  ] as const,
+};
 
 interface Props {
   boardBackground: string;
@@ -94,6 +118,21 @@ export const Toolbar = ({
   onThemeChange,
   onUndo,
 }: Props) => {
+  const renderSettingsButton = (isActive: boolean, label: string, onPress: () => void) => (
+    <button
+      type="button"
+      onClick={onPress}
+      className={`flex items-center justify-between gap-3 px-3 py-2 rounded-item border transition-colors text-left ${
+        isActive
+          ? 'border-blue-500 bg-blue-500/10 text-text-main'
+          : 'border-border-main bg-bg-main text-text-muted hover:bg-surface-hover hover:text-text-main'
+      }`}
+    >
+      <span>{label}</span>
+      {isActive && <div className="w-2 h-2 rounded-full bg-blue-500" />}
+    </button>
+  );
+
   return (
     <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
       <div>
@@ -127,110 +166,102 @@ export const Toolbar = ({
         )}
 
         {!isReadOnly && (
-          <MenuTrigger>
+          <DialogTrigger>
             <RACButton className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover text-text-main px-4 py-2.5 rounded-panel font-medium transition-all shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
               <Settings size={18} />
               Settings
             </RACButton>
-            <Popover className="bg-surface border border-border-main rounded-panel shadow-panel min-w-[240px] data-[entering]:animate-in data-[entering]:fade-in data-[exiting]:animate-out data-[exiting]:fade-out">
-              <Menu className="p-1.5 outline-none flex flex-col gap-1">
-                <Header className="px-3 py-2 text-xs font-semibold text-text-muted uppercase tracking-wider">
-                  Theme
-                </Header>
-                <MenuItem
-                  onAction={() => onThemeChange('modern')}
-                  className="flex items-center justify-between px-3 py-2 rounded-item cursor-pointer hover:bg-surface-hover outline-none focus:bg-surface-hover text-text-main"
-                >
-                  <span>Modern Dark</span>
-                  {theme === 'modern' && <div className="w-2 h-2 rounded-full bg-blue-500" />}
-                </MenuItem>
-                <MenuItem
-                  onAction={() => onThemeChange('brutalist')}
-                  className="flex items-center justify-between px-3 py-2 rounded-item cursor-pointer hover:bg-surface-hover outline-none focus:bg-surface-hover text-text-main"
-                >
-                  <span>Neo-Brutalist</span>
-                  {theme === 'brutalist' && <div className="w-2 h-2 rounded-full bg-blue-500" />}
-                </MenuItem>
-                <MenuItem
-                  onAction={() => onThemeChange('luxury')}
-                  className="flex items-center justify-between px-3 py-2 rounded-item cursor-pointer hover:bg-surface-hover outline-none focus:bg-surface-hover text-text-main"
-                >
-                  <span>Pure Luxury</span>
-                  {theme === 'luxury' && <div className="w-2 h-2 rounded-full bg-blue-500" />}
-                </MenuItem>
-
-                <Separator className="h-px bg-border-main my-1 mx-2" />
-
-                <Header className="px-3 py-2 text-xs font-semibold text-text-muted uppercase tracking-wider">
-                  Item Size
-                </Header>
-                <MenuItem
-                  onAction={() => onItemSizeChange('small')}
-                  className="flex items-center justify-between px-3 py-2 rounded-item cursor-pointer hover:bg-surface-hover outline-none focus:bg-surface-hover text-text-main"
-                >
-                  <div className="flex items-center gap-2">
-                    <Minimize size={16} /> Small
-                  </div>
-                  {itemSize === 'small' && <div className="w-2 h-2 rounded-full bg-blue-500" />}
-                </MenuItem>
-                <MenuItem
-                  onAction={() => onItemSizeChange('medium')}
-                  className="flex items-center justify-between px-3 py-2 rounded-item cursor-pointer hover:bg-surface-hover outline-none focus:bg-surface-hover text-text-main"
-                >
-                  <div className="flex items-center gap-2">
-                    <ImageIcon size={16} /> Medium
-                  </div>
-                  {itemSize === 'medium' && (
-                    <div className="w-2 h-2 rounded-full bg-blue-500" />
-                  )}
-                </MenuItem>
-                <MenuItem
-                  onAction={() => onItemSizeChange('large')}
-                  className="flex items-center justify-between px-3 py-2 rounded-item cursor-pointer hover:bg-surface-hover outline-none focus:bg-surface-hover text-text-main"
-                >
-                  <div className="flex items-center gap-2">
-                    <Maximize size={16} /> Large
-                  </div>
-                  {itemSize === 'large' && <div className="w-2 h-2 rounded-full bg-blue-500" />}
-                </MenuItem>
-
-                <Separator className="h-px bg-border-main my-1 mx-2" />
-
-                <Header className="px-3 py-2 text-xs font-semibold text-text-muted uppercase tracking-wider">
-                  Image Fit
-                </Header>
-                <MenuItem
-                  onAction={() => onImageFitChange('cover')}
-                  className="flex items-center justify-between px-3 py-2 rounded-item cursor-pointer hover:bg-surface-hover outline-none focus:bg-surface-hover text-text-main"
-                >
-                  <span>Crop to Fill</span>
-                  {imageFit === 'cover' && <div className="w-2 h-2 rounded-full bg-blue-500" />}
-                </MenuItem>
-                <MenuItem
-                  onAction={() => onImageFitChange('contain')}
-                  className="flex items-center justify-between px-3 py-2 rounded-item cursor-pointer hover:bg-surface-hover outline-none focus:bg-surface-hover text-text-main"
-                >
-                  <span>Fit Inside</span>
-                  {imageFit === 'contain' && (
-                    <div className="w-2 h-2 rounded-full bg-blue-500" />
-                  )}
-                </MenuItem>
-
-                <Separator className="h-px bg-border-main my-1 mx-2" />
-
-                <Header className="px-3 py-2 text-xs font-semibold text-text-muted uppercase tracking-wider">
-                  Board Background
-                </Header>
-                <div className="px-3 py-2 flex justify-center">
-                  <HexColorPicker
-                    color={boardBackground}
-                    onChange={onBoardBackgroundChange}
-                    className="!w-full !h-32"
-                  />
+            <Popover className="bg-surface border border-border-main rounded-panel shadow-panel w-[min(92vw,22rem)] max-h-[min(80vh,42rem)] overflow-auto data-[entering]:animate-in data-[entering]:fade-in data-[exiting]:animate-out data-[exiting]:fade-out">
+              <Dialog className="outline-none p-4 flex flex-col gap-4">
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-text-muted">
+                    Settings
+                  </h2>
+                  <p className="text-sm text-text-muted">
+                    Customize how your tier list board looks and behaves.
+                  </p>
                 </div>
-              </Menu>
+
+                <section className="flex flex-col gap-2">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                    Theme
+                  </h3>
+                  <div className="grid gap-2">
+                    {SETTINGS_SECTIONS.theme.map((option) => (
+                      <React.Fragment key={option.value}>
+                        {renderSettingsButton(theme === option.value, option.label, () =>
+                          onThemeChange(option.value)
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="flex flex-col gap-2">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                    Item Size
+                  </h3>
+                  <div className="grid gap-2">
+                    {SETTINGS_SECTIONS.itemSize.map((option) => {
+                      const Icon = option.icon;
+
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => onItemSizeChange(option.value)}
+                          className={`flex items-center justify-between gap-3 px-3 py-2 rounded-item border transition-colors text-left ${
+                            itemSize === option.value
+                              ? 'border-blue-500 bg-blue-500/10 text-text-main'
+                              : 'border-border-main bg-bg-main text-text-muted hover:bg-surface-hover hover:text-text-main'
+                          }`}
+                        >
+                          <span className="flex items-center gap-2">
+                            <Icon size={16} />
+                            {option.label}
+                          </span>
+                          {itemSize === option.value && (
+                            <div className="w-2 h-2 rounded-full bg-blue-500" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
+
+                <section className="flex flex-col gap-2">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                    Image Fit
+                  </h3>
+                  <div className="grid gap-2">
+                    {SETTINGS_SECTIONS.imageFit.map((option) => (
+                      <React.Fragment key={option.value}>
+                        {renderSettingsButton(imageFit === option.value, option.label, () =>
+                          onImageFitChange(option.value)
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                </section>
+
+                <section className="flex flex-col gap-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                      Board Background
+                    </h3>
+                    <span className="text-xs text-text-muted">{boardBackground}</span>
+                  </div>
+                  <div className="px-1 pb-1">
+                    <HexColorPicker
+                      color={boardBackground}
+                      onChange={onBoardBackgroundChange}
+                      className="!w-full !h-32"
+                    />
+                  </div>
+                </section>
+              </Dialog>
             </Popover>
-          </MenuTrigger>
+          </DialogTrigger>
         )}
 
         {!isReadOnly && (

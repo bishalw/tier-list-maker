@@ -50,8 +50,6 @@ export function TierListScreen() {
     moveItem(sourceTierId, destinationTierId, source.index, destination.index);
   };
 
-  if (!isMounted) return null;
-
   if (isLoadingShared) {
     return (
       <div className="min-h-screen bg-bg-main flex items-center justify-center text-text-main">
