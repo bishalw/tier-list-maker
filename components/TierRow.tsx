@@ -3,6 +3,7 @@ import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { Settings, GripVertical } from 'lucide-react';
 import { Tier, Item } from '../types';
 import { DraggableItem } from './DraggableItem';
+import { useTierStore } from '../store/useTierStore';
 
 interface Props {
   tier: Tier;
@@ -12,16 +13,27 @@ interface Props {
   isReadOnly?: boolean;
   originalItems?: Item[];
   tiers?: Tier[];
+  activeDragId?: string | null;
+  activeDragType?: 'item' | 'tier' | null;
 }
 
-export const TierRow = memo(({ tier, index, items, onEdit, isReadOnly, originalItems, tiers }: Props) => {
+export const TierRow = memo(({ tier, index, items, onEdit, isReadOnly, originalItems, tiers, activeDragId, activeDragType }: Props) => {
+  const itemSize = useTierStore(state => state.itemSize);
+
+  const sizeClasses = {
+    small: 'w-16 h-16 md:w-20 md:h-20',
+    medium: 'w-20 h-20 md:w-24 md:h-24',
+    large: 'w-24 h-24 md:w-32 md:h-32',
+  };
+
   return (
     <Draggable draggableId={tier.id} index={index} isDragDisabled={isReadOnly}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`flex border-b border-border-main min-h-[100px] group/row bg-transparent transition-colors duration-300 ${snapshot.isDragging ? 'z-50 shadow-panel ring-2 ring-focus-ring bg-surface' : ''}`}
+          className={`flex border-b border-border-main min-h-[100px] group/row bg-transparent transition-all duration-200 ${snapshot.isDragging ? 'z-50 shadow-panel scale-[1.01] bg-surface' : ''}`}
+          style={snapshot.isDragging ? { outline: `2px solid ${tier.color}`, outlineOffset: '-1px' } : undefined}
         >
           {/* Tier Label (Drag Handle) */}
           <div
@@ -64,19 +76,29 @@ export const TierRow = memo(({ tier, index, items, onEdit, isReadOnly, originalI
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}
-                className={`flex-1 flex flex-wrap content-start gap-3 p-3 transition-colors ${
-                  snapshot.isDraggingOver ? 'bg-border-main/10' : ''
+                className={`flex-1 flex flex-wrap content-start gap-3 p-3 transition-all duration-200 ${
+                  snapshot.isDraggingOver ? 'bg-drag-ghost ring-2 ring-drag-highlight ring-inset rounded-sm' : ''
                 }`}
               >
                 {items.map((item, idx) => (
-                  <DraggableItem 
-                    key={item.id} 
-                    item={item} 
-                    index={idx} 
-                    isReadOnly={isReadOnly} 
-                    originalItem={originalItems?.find(i => i.id === item.id)}
-                    tiers={tiers}
-                  />
+                  <React.Fragment key={item.id}>
+                    {item.id === activeDragId && (
+                      <div
+                        className={`rounded-item border-2 border-dashed border-drag-highlight bg-drag-ghost opacity-50 ${
+                          item.type === 'image' ? sizeClasses[itemSize] : 'px-4 py-2 min-w-[80px] min-h-[40px]'
+                        }`}
+                        aria-hidden="true"
+                      />
+                    )}
+                    <DraggableItem 
+                      item={item} 
+                      index={idx} 
+                      isReadOnly={isReadOnly} 
+                      originalItem={originalItems?.find(i => i.id === item.id)}
+                      tiers={tiers}
+                      activeDragId={activeDragId}
+                    />
+                  </React.Fragment>
                 ))}
                 {provided.placeholder}
               </div>

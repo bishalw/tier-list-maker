@@ -23,6 +23,8 @@
   --color-danger-foreground: var(--theme-danger-foreground);
   --color-focus-ring: var(--theme-focus-ring);
   --color-overlay: var(--theme-overlay);
+  --color-drag-ghost: var(--theme-drag-ghost);
+  --color-drag-highlight: var(--theme-drag-highlight);
   --radius-panel: var(--theme-radius-panel);
   --radius-item: var(--theme-radius-item);
   --shadow-panel: var(--theme-shadow-panel);
@@ -52,10 +54,22 @@
   --theme-danger-foreground: #fef2f2;
   --theme-focus-ring: #60a5fa;
   --theme-overlay: rgba(3, 7, 18, 0.7);
+  --theme-drag-ghost: rgba(37, 99, 235, 0.08);
+  --theme-drag-highlight: #60a5fa;
   --theme-radius-panel: 1rem;  /* Smooth rounded corners */
   --theme-radius-item: 0.5rem; /* Item corners */
-  --theme-shadow-panel: 0 25px 50px -12px rgba(0,0,0,0.5); /* Soft shadow */
-  --theme-shadow-floating: 0 25px 50px -12px rgba(59, 130, 246, 0.25);
+  --theme-shadow-panel: 0 4px 20px -5px rgba(0, 0, 0, 0.1), 0 8px 16px -8px rgba(0, 0, 0, 0.05);
+  --theme-shadow-floating: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+@keyframes glow-pulse {
+  0% { box-shadow: 0 0 0 0 var(--theme-drag-highlight); opacity: 1; }
+  50% { box-shadow: 0 0 15px 5px var(--theme-drag-highlight); opacity: 0.9; }
+  100% { box-shadow: var(--theme-shadow-floating); opacity: 1; }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 200ms ease-out forwards;
 }
 
 /* 2. Neo-Brutalist Theme */
@@ -81,6 +95,8 @@
   --theme-danger-foreground: #fef2f2;
   --theme-focus-ring: #2563eb;
   --theme-overlay: rgba(0, 0, 0, 0.45);
+  --theme-drag-ghost: rgba(37, 99, 235, 0.10);
+  --theme-drag-highlight: #2563eb;
   --theme-radius-panel: 0px;   /* Sharp, square corners */
   --theme-radius-item: 0px;    /* Sharp items */
   --theme-shadow-panel: 6px 6px 0px 0px #000000; /* Hard block shadow */
@@ -110,6 +126,8 @@
   --theme-danger-foreground: #111111;
   --theme-focus-ring: #d4af37;
   --theme-overlay: rgba(0, 0, 0, 0.78);
+  --theme-drag-ghost: rgba(212, 175, 55, 0.10);
+  --theme-drag-highlight: #d4af37;
   --theme-radius-panel: 0.25rem; /* Barely rounded */
   --theme-radius-item: 0.125rem; /* Barely rounded */
   --theme-shadow-panel: none;  /* No shadows, purely flat */

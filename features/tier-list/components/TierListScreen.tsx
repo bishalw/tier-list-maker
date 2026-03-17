@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { DragDropContext, Droppable, type DropResult } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, type DropResult, type DragStart } from '@hello-pangea/dnd';
 import { Plus, User, Users } from 'lucide-react';
 import { TierListToolbar } from './TierListToolbar';
 import { useTierListScreen } from '../hooks/useTierListScreen';
@@ -30,9 +30,21 @@ export function TierListScreen() {
     viewMode,
   } = useTierListScreen();
   const [editingTierId, setEditingTierId] = React.useState<string | null>(null);
+  const [activeDragId, setActiveDragId] = React.useState<string | null>(null);
+  const [activeDragType, setActiveDragType] = React.useState<'item' | 'tier' | null>(null);
   const effectiveBoardBackground = getEffectiveBoardBackground(theme, boardBackground);
 
+  const handleDragStart = (start: DragStart) => {
+    setActiveDragId(start.draggableId);
+    setActiveDragType(start.type === 'tier' ? 'tier' : 'item');
+    document.body.style.cursor = 'grabbing';
+  };
+
   const handleDragEnd = (result: DropResult) => {
+    setActiveDragId(null);
+    setActiveDragType(null);
+    document.body.style.cursor = '';
+
     if (effectiveIsReadOnly) return;
 
     const { source, destination, type } = result;
@@ -153,7 +165,7 @@ export function TierListScreen() {
           </div>
         )}
 
-        <DragDropContext onDragEnd={handleDragEnd}>
+        <DragDropContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
           <div className="flex flex-col xl:flex-row gap-8 items-start">
             <div className="flex-1 w-full min-w-0">
               <div
@@ -184,6 +196,8 @@ export function TierListScreen() {
                           originalItems={viewMode === 'compare' ? items : undefined}
                           tier={tier}
                           tiers={tiers}
+                          activeDragId={activeDragId}
+                          activeDragType={activeDragType}
                         />
                       ))}
                       {provided.placeholder}
@@ -208,6 +222,7 @@ export function TierListScreen() {
                 items={groupedItems.get(null) || []}
                 originalItems={viewMode === 'compare' ? items : undefined}
                 tiers={tiers}
+                activeDragId={activeDragId}
               />
             </div>
           </div>

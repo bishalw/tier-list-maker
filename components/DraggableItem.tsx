@@ -10,9 +10,10 @@ interface Props {
   isReadOnly?: boolean;
   originalItem?: Item;
   tiers?: Tier[];
+  activeDragId?: string | null;
 }
 
-export const DraggableItem = memo(({ item, index, isReadOnly, originalItem, tiers }: Props) => {
+export const DraggableItem = memo(({ item, index, isReadOnly, originalItem, tiers, activeDragId }: Props) => {
   const deleteItem = useTierStore(state => state.deleteItem);
   const itemSize = useTierStore(state => state.itemSize);
   const imageFit = useTierStore(state => state.imageFit);
@@ -39,6 +40,8 @@ export const DraggableItem = memo(({ item, index, isReadOnly, originalItem, tier
     rankDiff = safeOriginalRank - safeCurrentRank;
   }
 
+  const isDimmed = activeDragId != null && activeDragId !== item.id;
+
   return (
     <Draggable draggableId={item.id} index={index} isDragDisabled={isReadOnly}>
       {(provided, snapshot) => (
@@ -46,8 +49,10 @@ export const DraggableItem = memo(({ item, index, isReadOnly, originalItem, tier
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`relative group ${isReadOnly ? '' : 'cursor-grab active:cursor-grabbing'} rounded-item overflow-hidden bg-surface-hover border flex items-center justify-center transition-shadow ${
-            snapshot.isDragging ? 'border-accent shadow-floating z-50 scale-105 rotate-2' : 'border-border-main hover:ring-2 hover:ring-focus-ring'
+          className={`relative group ${isReadOnly ? '' : 'cursor-grab active:cursor-grabbing'} rounded-item overflow-hidden bg-surface-hover border flex items-center justify-center transition-[box-shadow,border-color] duration-150 ${
+            snapshot.isDragging ? 'border-drag-highlight ring-2 ring-drag-highlight shadow-floating z-50 scale-105 animate-glow-pulse' : 'border-border-main hover:ring-2 hover:ring-focus-ring'
+          } ${
+            isDimmed ? 'opacity-40' : ''
           } ${
             item.type === 'image' ? sizeClasses[itemSize] : 'px-4 py-2 min-w-[80px] min-h-[40px]'
           }`}
