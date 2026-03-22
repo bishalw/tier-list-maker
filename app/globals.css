@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
 
+@custom-variant coarse (@media (pointer: coarse));
+@custom-variant fine (@media (pointer: fine));
+
 @theme {
   --color-bg-main: var(--theme-bg);
   --color-surface: var(--theme-surface);

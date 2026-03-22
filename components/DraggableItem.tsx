@@ -12,9 +12,10 @@ interface Props {
   originalItem?: Item;
   tiers?: Tier[];
   activeDragId?: string | null;
+  onTap?: (itemId: string) => void;
 }
 
-export const DraggableItem = memo(({ item, index, isReadOnly, originalItem, tiers, activeDragId }: Props) => {
+export const DraggableItem = memo(({ item, index, isReadOnly, originalItem, tiers, activeDragId, onTap }: Props) => {
   const deleteItem = useBoardStore(state => state.deleteItem);
   const itemSize = usePrefsStore(state => state.itemSize);
   const imageFit = usePrefsStore(state => state.imageFit);
@@ -51,6 +52,7 @@ export const DraggableItem = memo(({ item, index, isReadOnly, originalItem, tier
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           style={provided.draggableProps.style}
+          onClick={() => onTap?.(item.id)}
           className={`relative group ${isReadOnly ? '' : 'cursor-grab active:cursor-grabbing'} rounded-item overflow-hidden bg-surface-hover border flex items-center justify-center transition-[box-shadow,border-color,background-color,opacity] duration-150 ${
             snapshot.isDragging ? 'border-drag-highlight ring-2 ring-drag-highlight shadow-floating z-50 animate-glow-pulse' : 'border-border-main hover:ring-2 hover:ring-focus-ring'
           } ${

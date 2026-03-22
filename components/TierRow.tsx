@@ -13,9 +13,10 @@ interface Props {
   originalItems?: Item[];
   tiers?: Tier[];
   activeDragId?: string | null;
+  onItemTap?: (itemId: string) => void;
 }
 
-export const TierRow = memo(({ tier, index, items, onEdit, isReadOnly, originalItems, tiers, activeDragId }: Props) => {
+export const TierRow = memo(({ tier, index, items, onEdit, isReadOnly, originalItems, tiers, activeDragId, onItemTap }: Props) => {
   return (
     <Draggable draggableId={tier.id} index={index} isDragDisabled={isReadOnly}>
       {(provided, snapshot) => (
@@ -75,13 +76,14 @@ export const TierRow = memo(({ tier, index, items, onEdit, isReadOnly, originalI
               >
                 {items.map((item, idx) => (
                   <React.Fragment key={item.id}>
-                    <DraggableItem 
-                      item={item} 
-                      index={idx} 
-                      isReadOnly={isReadOnly} 
+                    <DraggableItem
+                      item={item}
+                      index={idx}
+                      isReadOnly={isReadOnly}
                       originalItem={originalItems?.find(i => i.id === item.id)}
                       tiers={tiers}
                       activeDragId={activeDragId}
+                      onTap={onItemTap}
                     />
                   </React.Fragment>
                 ))}

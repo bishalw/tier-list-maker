@@ -1,3 +1,5 @@
+'use client';
+
 const LEGACY_STORAGE_KEY = 'tier-list-storage';
 const CLEANUP_SENTINEL_KEY = 'tier-list-store-split-cleaned';
 

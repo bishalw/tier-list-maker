@@ -1,19 +1,21 @@
+'use client';
+
 import type { TierBoardState } from '../types';
-import { useBoardStore } from './useBoardStore';
-import { usePrefsStore } from './usePrefsStore';
+import { boardStore } from './useBoardStore';
+import { prefsStore } from './usePrefsStore';
 
 export function hydrateBoardState(boardState: TierBoardState) {
-  const temporalState = useBoardStore.temporal.getState();
+  const temporalState = boardStore.temporal.getState();
   temporalState.pause();
 
-  useBoardStore.setState(
+  boardStore.setState(
     {
       tiers: boardState.tiers,
       items: boardState.items,
     },
     false
   );
-  usePrefsStore.setState({
+  prefsStore.setState({
     theme: boardState.theme,
     boardBackground: boardState.boardBackground,
     itemSize: boardState.itemSize,

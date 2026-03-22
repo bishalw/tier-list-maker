@@ -19,13 +19,14 @@ interface Props {
   originalItems?: Item[];
   tiers?: Tier[];
   activeDragId?: string | null;
+  onItemTap?: (itemId: string) => void;
 }
 
-export const UnrankedPool = memo(({ items, isReadOnly, originalItems, tiers, activeDragId }: Props) => {
+export const UnrankedPool = memo(({ items, isReadOnly, originalItems, tiers, activeDragId, onItemTap }: Props) => {
   const [textInput, setTextInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const addItems = useBoardStore(state => state.addItems);
+  const addItem = useBoardStore(state => state.addItem);
 
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) return items;
@@ -54,7 +55,7 @@ export const UnrankedPool = memo(({ items, isReadOnly, originalItems, tiers, act
       tierId: null,
     }));
 
-    addItems(newItems);
+    newItems.forEach((item) => addItem(item));
     setTextInput('');
   };
 
@@ -73,7 +74,7 @@ export const UnrankedPool = memo(({ items, isReadOnly, originalItems, tiers, act
             type: 'image',
             tierId: null,
           };
-          addItems([newItem]);
+          addItem(newItem);
         }
       };
       reader.readAsDataURL(file);
@@ -183,13 +184,14 @@ export const UnrankedPool = memo(({ items, isReadOnly, originalItems, tiers, act
             ) : (
               filteredItems.map((item, idx) => (
                 <React.Fragment key={item.id}>
-                  <DraggableItem 
-                    item={item} 
-                    index={idx} 
-                    isReadOnly={isReadOnly} 
+                  <DraggableItem
+                    item={item}
+                    index={idx}
+                    isReadOnly={isReadOnly}
                     originalItem={originalItems?.find(i => i.id === item.id)}
                     tiers={tiers}
                     activeDragId={activeDragId}
+                    onTap={onItemTap}
                   />
                 </React.Fragment>
               ))

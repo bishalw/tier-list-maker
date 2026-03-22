@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { hydrateBoardState } from '../store/hydrateBoardState';
 import { cleanupLegacyTierStoreStorage } from '../store/cleanupLegacyTierStore';
-import { useBoardStore } from '../store/useBoardStore';
-import { usePrefsStore } from '../store/usePrefsStore';
+import { boardStore } from '../store/useBoardStore';
+import { prefsStore } from '../store/usePrefsStore';
 
 class MemoryStorage {
   private data = new Map<string, string>();
@@ -33,16 +33,16 @@ Object.assign(globalThis, {
 });
 
 function resetStores() {
-  const temporal = useBoardStore.temporal.getState();
+  const temporal = boardStore.temporal.getState();
   temporal.pause();
-  useBoardStore.setState({
+  boardStore.setState({
     tiers: [
       { id: 's', label: 'S', color: '#ff0000' },
       { id: 'a', label: 'A', color: '#ffaa00' },
     ],
     items: [],
   });
-  usePrefsStore.setState({
+  prefsStore.setState({
     theme: 'modern',
     boardBackground: 'theme-default',
     itemSize: 'medium',
@@ -57,40 +57,112 @@ test.beforeEach(() => {
   resetStores();
 });
 
-test('board store resetTiers(theme) uses the passed theme palette', () => {
-  useBoardStore.getState().resetTiers('luxury');
+test('board store exposes a defined initial snapshot for React subscriptions', () => {
+  const initialState = boardStore.getInitialState();
 
-  const tiers = useBoardStore.getState().tiers;
+  assert.ok(initialState);
+  assert.ok(Array.isArray(initialState.tiers));
+  assert.ok(Array.isArray(initialState.items));
+  assert.ok(boardStore.temporal.getState());
+});
+
+test('board store resetTiers(theme) uses the passed theme palette', () => {
+  boardStore.getState().resetTiers('luxury');
+
+  const tiers = boardStore.getState().tiers;
   assert.equal(tiers[0]?.color, '#d4af37');
   assert.equal(tiers.length, 5);
 });
 
 test('board store applyTemplate returns items to the pool', () => {
-  useBoardStore.setState({
+  boardStore.setState({
     items: [{ id: 'item-1', content: 'Mario', type: 'text', tierId: 's' }],
   });
 
-  useBoardStore.getState().applyTemplate([{ id: 'x', label: 'X', color: '#111111' }]);
+  boardStore.getState().applyTemplate([{ id: 'x', label: 'X', color: '#111111' }]);
 
-  assert.deepEqual(useBoardStore.getState().tiers, [{ id: 'x', label: 'X', color: '#111111' }]);
-  assert.equal(useBoardStore.getState().items[0]?.tierId, null);
+  assert.deepEqual(boardStore.getState().tiers, [{ id: 'x', label: 'X', color: '#111111' }]);
+  assert.equal(boardStore.getState().items[0]?.tierId, null);
 });
 
 test('prefs changes are not tracked in board undo history', () => {
-  usePrefsStore.getState().setTheme('brutalist');
-  useBoardStore.getState().addItems([{ id: 'item-1', content: 'Mario', type: 'text', tierId: null }]);
+  prefsStore.getState().setTheme('brutalist');
+  boardStore.getState().addItems([{ id: 'item-1', content: 'Mario', type: 'text', tierId: null }]);
 
-  const temporal = useBoardStore.temporal.getState();
+  const temporal = boardStore.temporal.getState();
   assert.equal(temporal.pastStates.length, 1);
 
   temporal.undo();
-  assert.equal(useBoardStore.getState().items.length, 0);
-  assert.equal(usePrefsStore.getState().theme, 'brutalist');
+  assert.equal(boardStore.getState().items.length, 0);
+  assert.equal(prefsStore.getState().theme, 'brutalist');
+});
+
+test('undo removes individually added items one at a time', () => {
+  boardStore.getState().addItem({ id: 'item-1', content: 'Mario', type: 'text', tierId: null });
+  boardStore.getState().addItem({ id: 'item-2', content: 'Luigi', type: 'text', tierId: null });
+  boardStore.getState().addItem({ id: 'item-3', content: 'Peach', type: 'text', tierId: null });
+
+  const temporal = boardStore.temporal.getState();
+  assert.equal(temporal.pastStates.length, 3);
+  assert.equal(boardStore.getState().items.length, 3);
+
+  temporal.undo();
+  assert.deepEqual(
+    boardStore.getState().items.map((item) => item.id),
+    ['item-1', 'item-2']
+  );
+
+  temporal.undo();
+  assert.deepEqual(
+    boardStore.getState().items.map((item) => item.id),
+    ['item-1']
+  );
+
+  temporal.undo();
+  assert.equal(boardStore.getState().items.length, 0);
+});
+
+test('undo reverts item moves one drag at a time', () => {
+  boardStore.setState({
+    items: [
+      { id: 'item-1', content: 'Mario', type: 'text', tierId: null },
+      { id: 'item-2', content: 'Luigi', type: 'text', tierId: null },
+      { id: 'item-3', content: 'Peach', type: 'text', tierId: null },
+    ],
+  });
+  boardStore.temporal.getState().clear();
+
+  boardStore.getState().moveItem(null, 's', 0, 0);
+  boardStore.getState().moveItem(null, 'a', 0, 0);
+  boardStore.getState().moveItem(null, 's', 0, 1);
+
+  const temporal = boardStore.temporal.getState();
+  assert.equal(temporal.pastStates.length, 3);
+
+  temporal.undo();
+  assert.deepEqual(
+    boardStore.getState().items.map((item) => [item.id, item.tierId]),
+    [
+      ['item-3', null],
+      ['item-1', 's'],
+      ['item-2', 'a'],
+    ]
+  );
+
+  temporal.undo();
+  assert.deepEqual(
+    boardStore.getState().items.map((item) => [item.id, item.tierId]),
+    [
+      ['item-2', null],
+      ['item-3', null],
+      ['item-1', 's'],
+    ]
+  );
 });
 
 test('hydrateBoardState replaces both stores and clears undo history', () => {
-  useBoardStore.getState().addItems([{ id: 'item-1', content: 'Mario', type: 'text', tierId: null }]);
-  assert.equal(useBoardStore.temporal.getState().pastStates.length, 1);
+  boardStore.getState().addItems([{ id: 'item-1', content: 'Mario', type: 'text', tierId: null }]);
+  assert.equal(boardStore.temporal.getState().pastStates.length, 1);
 
   hydrateBoardState({
     tiers: [{ id: 'z', label: 'Z', color: '#123456' }],
@@ -101,10 +173,10 @@ test('hydrateBoardState replaces both stores and clears undo history', () => {
     imageFit: 'contain',
   });
 
-  assert.equal(useBoardStore.temporal.getState().pastStates.length, 0);
-  assert.deepEqual(useBoardStore.getState().tiers, [{ id: 'z', label: 'Z', color: '#123456' }]);
-  assert.equal(usePrefsStore.getState().theme, 'luxury');
-  assert.equal(usePrefsStore.getState().imageFit, 'contain');
+  assert.equal(boardStore.temporal.getState().pastStates.length, 0);
+  assert.deepEqual(boardStore.getState().tiers, [{ id: 'z', label: 'Z', color: '#123456' }]);
+  assert.equal(prefsStore.getState().theme, 'luxury');
+  assert.equal(prefsStore.getState().imageFit, 'contain');
 });
 
 test('legacy tier store cleanup removes the old key once', () => {
@@ -118,4 +190,30 @@ test('legacy tier store cleanup removes the old key once', () => {
   localStorage.setItem('tier-list-storage', 'should-stay');
   cleanupLegacyTierStoreStorage();
   assert.equal(localStorage.getItem('tier-list-storage'), 'should-stay');
+});
+
+test('board store ignores malformed persisted board state', async () => {
+  const boardStorageKey = 'tier-list-board-storage';
+  const expectedState = boardStore.getState();
+
+  localStorage.setItem(
+    boardStorageKey,
+    JSON.stringify({
+      state: {
+        tiers: 'broken',
+        items: null,
+      },
+      version: 0,
+    })
+  );
+
+  const { boardStore: freshBoardStore } = await import(
+    `../store/useBoardStore.ts?malformed-persist=${Date.now()}`
+  );
+
+  const state = freshBoardStore.getState();
+  assert.ok(Array.isArray(state.tiers));
+  assert.ok(Array.isArray(state.items));
+  assert.deepEqual(state.tiers, expectedState.tiers);
+  assert.deepEqual(state.items, expectedState.items);
 });

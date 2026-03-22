@@ -11,6 +11,8 @@ import { getEffectiveBoardBackground } from '../../../constants/theme';
 import { TierRow } from '../../../components/TierRow';
 import { UnrankedPool } from '../../../components/UnrankedPool';
 import { EditTierModal } from '../../../components/EditTierModal';
+import { TierAssignSheet } from './TierAssignSheet';
+import { useBoardStore } from '../../../store/useBoardStore';
 
 export function TierListScreen() {
   const {
@@ -40,8 +42,11 @@ export function TierListScreen() {
     viewMode,
     moveItem,
   } = useTierListScreen();
+  const assignItemToTier = useBoardStore((state) => state.assignItemToTier);
   const [editingTierId, setEditingTierId] = React.useState<string | null>(null);
   const [activeDragId, setActiveDragId] = React.useState<string | null>(null);
+  const [tappedItemId, setTappedItemId] = React.useState<string | null>(null);
+  const tappedItem = tappedItemId ? items.find((i) => i.id === tappedItemId) : null;
   const effectiveBoardBackground = getEffectiveBoardBackground(theme, boardBackground);
 
   const showLandingLayout = isViewer && !hasStartedEditing && hasSharedListContext;
@@ -293,6 +298,7 @@ export function TierListScreen() {
                               tier={tier}
                               tiers={tiers}
                               activeDragId={activeDragId}
+                              onItemTap={effectiveIsReadOnly ? undefined : setTappedItemId}
                             />
                           ))}
                           {provided.placeholder}
@@ -318,6 +324,7 @@ export function TierListScreen() {
                     originalItems={diffOriginalItems}
                     tiers={tiers}
                     activeDragId={activeDragId}
+                    onItemTap={effectiveIsReadOnly ? undefined : setTappedItemId}
                   />
                 </div>
               </div>
@@ -327,6 +334,16 @@ export function TierListScreen() {
       </div>
 
       <EditTierModal editingTierId={editingTierId} onClose={() => setEditingTierId(null)} />
+
+      <TierAssignSheet
+        isOpen={tappedItemId !== null}
+        onClose={() => setTappedItemId(null)}
+        tiers={tiers}
+        currentTierId={tappedItem?.tierId ?? null}
+        onSelect={(tierId) => {
+          if (tappedItemId) assignItemToTier(tappedItemId, tierId);
+        }}
+      />
     </div>
   );
 }

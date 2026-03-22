@@ -14,8 +14,8 @@ import {
 } from '../../auth/authIntent';
 import { createTierListAction, submitRemixAction, updateTierListAction } from '../actions';
 import { mapBoardStateToCreateInput, mapBoardStateToUpdateInput } from '../mappers';
-import { useBoardStore } from '../../../store/useBoardStore';
-import { usePrefsStore } from '../../../store/usePrefsStore';
+import { boardStore, useBoardStore } from '../../../store/useBoardStore';
+import { prefsStore, usePrefsStore } from '../../../store/usePrefsStore';
 
 interface Params {
   listId: string | null;
@@ -43,8 +43,8 @@ export function useTierListCommands({ listId, remixingId, isReadOnly, title, onA
   const boardBackground = usePrefsStore((state) => state.boardBackground);
 
   const buildBoardState = useCallback(() => {
-    const boardState = useBoardStore.getState();
-    const prefsState = usePrefsStore.getState();
+    const boardState = boardStore.getState();
+    const prefsState = prefsStore.getState();
 
     return {
       tiers: boardState.tiers,
@@ -158,7 +158,7 @@ export function useTierListCommands({ listId, remixingId, isReadOnly, title, onA
   const handleRemix = () => {
     if (!listId) return;
 
-    useBoardStore.getState().returnItemsToPool();
+    boardStore.getState().returnItemsToPool();
     router.push(`/create?remixing=${listId}`);
   };
 
@@ -255,10 +255,10 @@ export function useTierListCommands({ listId, remixingId, isReadOnly, title, onA
     return readAuthIntent()?.type ?? null;
   }, [pendingAuthIntentType]);
 
-  const undo = useStore(useBoardStore.temporal, (state) => state.undo);
-  const redo = useStore(useBoardStore.temporal, (state) => state.redo);
-  const pastStates = useStore(useBoardStore.temporal, (state) => state.pastStates);
-  const futureStates = useStore(useBoardStore.temporal, (state) => state.futureStates);
+  const undo = useStore(boardStore.temporal, (state) => state.undo);
+  const redo = useStore(boardStore.temporal, (state) => state.redo);
+  const pastStates = useStore(boardStore.temporal, (state) => state.pastStates);
+  const futureStates = useStore(boardStore.temporal, (state) => state.futureStates);
 
   return {
     authNextPath: buildNextPath(),

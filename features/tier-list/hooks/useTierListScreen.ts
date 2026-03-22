@@ -5,8 +5,8 @@ import { useSearchParams } from 'next/navigation';
 import { getBrowserSupabaseClient } from '../../../lib/supabase/client';
 import { cleanupLegacyTierStoreStorage } from '../../../store/cleanupLegacyTierStore';
 import { hydrateBoardState } from '../../../store/hydrateBoardState';
-import { useBoardStore } from '../../../store/useBoardStore';
-import { usePrefsStore } from '../../../store/usePrefsStore';
+import { boardStore, useBoardStore } from '../../../store/useBoardStore';
+import { prefsStore, usePrefsStore } from '../../../store/usePrefsStore';
 import { mapSearchParamsToRouteState } from '../mappers';
 import { recordViewAction } from '../actions';
 import { getCommunityConsensus, getRemixById, getTierListById } from '../queries';
@@ -63,8 +63,20 @@ export function useTierListScreen() {
   }, []);
 
   useEffect(() => {
-    setIsMounted(true);
-    cleanupLegacyTierStoreStorage();
+    let canceled = false;
+    void (async () => {
+      try {
+        await Promise.all([boardStore.persist?.rehydrate?.(), prefsStore.persist?.rehydrate?.()]);
+      } finally {
+        if (canceled) return;
+        cleanupLegacyTierStoreStorage();
+        setIsMounted(true);
+      }
+    })();
+
+    return () => {
+      canceled = true;
+    };
   }, []);
 
   useEffect(() => {
