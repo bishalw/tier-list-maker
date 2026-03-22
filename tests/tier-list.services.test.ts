@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { buildCommunityConsensus } from '../features/tier-list/services/communityConsensus';
-import { deriveIsReadOnly } from '../features/tier-list/services/ownership';
+import { deriveIsViewer, deriveIsReadOnly } from '../features/tier-list/services/ownership';
 
-test('deriveIsReadOnly returns false when remixing', () => {
+test('deriveIsViewer returns false when remixing', () => {
   assert.equal(
-    deriveIsReadOnly({
+    deriveIsViewer({
       targetListId: 'list-1',
       remixingId: 'list-1',
       ownerId: 'owner-1',
@@ -15,9 +15,9 @@ test('deriveIsReadOnly returns false when remixing', () => {
   );
 });
 
-test('deriveIsReadOnly returns true when non-owner views shared list', () => {
+test('deriveIsViewer returns true when non-owner views shared list', () => {
   assert.equal(
-    deriveIsReadOnly({
+    deriveIsViewer({
       targetListId: 'list-1',
       remixingId: null,
       ownerId: 'owner-1',
@@ -25,6 +25,14 @@ test('deriveIsReadOnly returns true when non-owner views shared list', () => {
     }),
     true
   );
+});
+
+test('deriveIsReadOnly returns true for community viewMode', () => {
+  assert.equal(deriveIsReadOnly('community'), true);
+});
+
+test('deriveIsReadOnly returns false for yours viewMode', () => {
+  assert.equal(deriveIsReadOnly('yours'), false);
 });
 
 test('buildCommunityConsensus assigns averaged tier placements', () => {
