@@ -33,33 +33,34 @@
 
 /* 1. Default / Modern Dark Theme */
 :root, [data-theme="modern"] {
-  --theme-bg: #030712;         /* Very dark gray (gray-950) */
-  --theme-surface: #111827;    /* Lighter gray for cards (gray-900) */
-  --theme-surface-hover: #1f2937; /* Hover state (gray-800) */
-  --theme-border: #1f2937;     /* Subtle border (gray-800) */
-  --theme-text: #f3f4f6;       /* Primary text (gray-100) */
-  --theme-text-muted: #9ca3af; /* Secondary text (gray-400) */
-  --theme-accent: #2563eb;
-  --theme-accent-hover: #1d4ed8;
-  --theme-accent-foreground: #eff6ff;
-  --theme-accent-soft: rgba(37, 99, 235, 0.12);
-  --theme-success: #16a34a;
-  --theme-success-soft: rgba(22, 163, 74, 0.12);
-  --theme-success-foreground: #f0fdf4;
-  --theme-warning: #a855f7;
-  --theme-warning-soft: rgba(168, 85, 247, 0.12);
-  --theme-warning-foreground: #faf5ff;
+  --theme-bg: #09090b;         /* Zinc 950 (Neutral, clean black) */
+  --theme-surface: #18181b;    /* Zinc 900 */
+  --theme-surface-hover: #27272a; /* Zinc 800 */
+  --theme-border: #27272a;     /* Zinc 800 */
+  --theme-text: #fafafa;       /* Zinc 50 */
+  --theme-text-muted: #a1a1aa; /* Zinc 400 */
+  --theme-accent: #3b82f6;
+  --theme-accent-hover: #2563eb;
+  --theme-accent-foreground: #ffffff;
+  --theme-accent-soft: rgba(59, 130, 246, 0.1);
+  --theme-success: #10b981;
+  --theme-success-soft: rgba(16, 185, 129, 0.1);
+  --theme-success-foreground: #ffffff;
+  --theme-warning: #f59e0b;
+  --theme-warning-soft: rgba(245, 158, 11, 0.1);
+  --theme-warning-foreground: #ffffff;
   --theme-danger: #ef4444;
-  --theme-danger-soft: rgba(239, 68, 68, 0.12);
-  --theme-danger-foreground: #fef2f2;
-  --theme-focus-ring: #60a5fa;
-  --theme-overlay: rgba(3, 7, 18, 0.7);
-  --theme-drag-ghost: rgba(37, 99, 235, 0.08);
-  --theme-drag-highlight: #60a5fa;
-  --theme-radius-panel: 1rem;  /* Smooth rounded corners */
-  --theme-radius-item: 0.5rem; /* Item corners */
-  --theme-shadow-panel: 0 4px 20px -5px rgba(0, 0, 0, 0.1), 0 8px 16px -8px rgba(0, 0, 0, 0.05);
-  --theme-shadow-floating: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --theme-danger-soft: rgba(239, 68, 68, 0.1);
+  --theme-danger-foreground: #ffffff;
+  --theme-focus-ring: #3b82f6;
+  --theme-overlay: rgba(0, 0, 0, 0.8);
+  --theme-drag-ghost: rgba(59, 130, 246, 0.1);
+  --theme-drag-highlight: #3b82f6;
+  --theme-radius-panel: 0.75rem;
+  --theme-radius-item: 0.375rem;
+  --theme-shadow-panel: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+  --theme-shadow-floating: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+  --theme-accent-glow: 0 0 15px -3px rgba(59, 130, 246, 0.5);
 }
 
 @keyframes glow-pulse {
@@ -101,35 +102,37 @@
   --theme-radius-item: 0px;    /* Sharp items */
   --theme-shadow-panel: 6px 6px 0px 0px #000000; /* Hard block shadow */
   --theme-shadow-floating: 12px 12px 0px 0px #000000;
+  --theme-accent-glow: 4px 4px 0px 0px #000000;
 }
 
 /* 3. Pure Dark Luxury Theme */
 [data-theme="luxury"] {
-  --theme-bg: #000000;         /* Pitch black */
-  --theme-surface: #000000;    /* Pitch black */
-  --theme-surface-hover: #171717; /* Very dark gray */
-  --theme-border: #262626;     /* Very thin, subtle gray */
-  --theme-text: #fafafa;       /* White text */
-  --theme-text-muted: #a3a3a3; /* Muted text */
-  --theme-accent: #d4af37;
-  --theme-accent-hover: #b9941f;
-  --theme-accent-foreground: #111111;
-  --theme-accent-soft: rgba(212, 175, 55, 0.16);
+  --theme-bg: #050505;         /* Purest black with slight texture */
+  --theme-surface: #0a0a0a;
+  --theme-surface-hover: #111111;
+  --theme-border: #1a1a1a;
+  --theme-text: #ffffff;
+  --theme-text-muted: #737373;
+  --theme-accent: #ffffff;     /* Luxury uses white/silver accents instead of yellow-gold */
+  --theme-accent-hover: #e5e5e5;
+  --theme-accent-foreground: #000000;
+  --theme-accent-soft: rgba(255, 255, 255, 0.05);
   --theme-success: #10b981;
-  --theme-success-soft: rgba(16, 185, 129, 0.16);
-  --theme-success-foreground: #ecfdf5;
+  --theme-success-soft: rgba(16, 185, 129, 0.05);
+  --theme-success-foreground: #ffffff;
   --theme-warning: #f59e0b;
-  --theme-warning-soft: rgba(245, 158, 11, 0.16);
-  --theme-warning-foreground: #111111;
-  --theme-danger: #f87171;
-  --theme-danger-soft: rgba(248, 113, 113, 0.16);
-  --theme-danger-foreground: #111111;
-  --theme-focus-ring: #d4af37;
-  --theme-overlay: rgba(0, 0, 0, 0.78);
-  --theme-drag-ghost: rgba(212, 175, 55, 0.10);
-  --theme-drag-highlight: #d4af37;
-  --theme-radius-panel: 0.25rem; /* Barely rounded */
-  --theme-radius-item: 0.125rem; /* Barely rounded */
-  --theme-shadow-panel: none;  /* No shadows, purely flat */
-  --theme-shadow-floating: 0 0 0 1px #3b82f6; /* Just a blue ring */
+  --theme-warning-soft: rgba(245, 158, 11, 0.05);
+  --theme-warning-foreground: #ffffff;
+  --theme-danger: #ef4444;
+  --theme-danger-soft: rgba(239, 68, 68, 0.05);
+  --theme-danger-foreground: #ffffff;
+  --theme-focus-ring: #ffffff;
+  --theme-overlay: rgba(0, 0, 0, 0.9);
+  --theme-drag-ghost: rgba(255, 255, 255, 0.05);
+  --theme-drag-highlight: #ffffff;
+  --theme-radius-panel: 0rem;
+  --theme-radius-item: 0rem;
+  --theme-shadow-panel: none;
+  --theme-shadow-floating: 0 0 0 1px rgba(255, 255, 255, 0.1);
+  --theme-accent-glow: 0 0 20px -5px rgba(255, 255, 255, 0.3);
 }
