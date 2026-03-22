@@ -2,7 +2,7 @@ import React from 'react';
 import { Modal, ModalOverlay, Dialog, Heading, Button as RACButton, TextField, Label, Input } from 'react-aria-components';
 import { Trash2 } from 'lucide-react';
 import { HexColorPicker } from 'react-colorful';
-import { useTierStore } from '../store/useTierStore';
+import { useBoardStore } from '../store/useBoardStore';
 
 interface Props {
   editingTierId: string | null;
@@ -10,9 +10,9 @@ interface Props {
 }
 
 export const EditTierModal = ({ editingTierId, onClose }: Props) => {
-  const tiers = useTierStore(state => state.tiers);
-  const updateTier = useTierStore(state => state.updateTier);
-  const deleteTier = useTierStore(state => state.deleteTier);
+  const tiers = useBoardStore(state => state.tiers);
+  const updateTier = useBoardStore(state => state.updateTier);
+  const deleteTier = useBoardStore(state => state.deleteTier);
 
   const editingTier = tiers.find((t) => t.id === editingTierId);
 

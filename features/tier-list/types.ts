@@ -49,3 +49,5 @@ export interface RemixRecord {
   items: Item[];
   createdAt: string;
 }
+
+export type ViewMode = 'creator' | 'community' | 'compare' | 'yours';

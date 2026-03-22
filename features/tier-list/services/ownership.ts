@@ -1,4 +1,6 @@
-export function deriveIsReadOnly(params: {
+import type { ViewMode } from '../types';
+
+export function deriveIsViewer(params: {
   targetListId: string | null;
   remixingId: string | null;
   ownerId: string | null;
@@ -13,4 +15,8 @@ export function deriveIsReadOnly(params: {
   }
 
   return params.currentUserId !== params.ownerId;
+}
+
+export function deriveIsReadOnly(viewMode: ViewMode) {
+  return viewMode === 'community' || viewMode === 'compare';
 }

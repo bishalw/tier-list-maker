@@ -1,13 +1,17 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { useTierStore } from '../../../store/useTierStore';
-import { ensureAnonymousSession, subscribeToAuthState } from '../../../lib/supabase/auth';
+import { getBrowserSupabaseClient } from '../../../lib/supabase/client';
+import { cleanupLegacyTierStoreStorage } from '../../../store/cleanupLegacyTierStore';
+import { hydrateBoardState } from '../../../store/hydrateBoardState';
+import { useBoardStore } from '../../../store/useBoardStore';
+import { usePrefsStore } from '../../../store/usePrefsStore';
 import { mapSearchParamsToRouteState } from '../mappers';
 import { getCommunityConsensus, getRemixById, getTierListById } from '../queries';
-import { deriveIsReadOnly } from '../services/ownership';
+import { deriveIsViewer, deriveIsReadOnly } from '../services/ownership';
 import type { Item } from '../../../types';
+import type { ViewMode } from '../types';
 
 export function useTierListScreen() {
   const searchParams = useSearchParams();
@@ -15,64 +19,113 @@ export function useTierListScreen() {
 
   const [isMounted, setIsMounted] = useState(false);
   const [isLoadingShared, setIsLoadingShared] = useState(false);
-  const [isReadOnly, setIsReadOnly] = useState(false);
+  const [isViewer, setIsViewer] = useState(false);
+  const [hasSharedListContext, setHasSharedListContext] = useState(false);
+  const [hasStartedEditing, setHasStartedEditing] = useState(false);
+  const [originalItems, setOriginalItems] = useState<Item[] | null>(null);
   const [sharedListOwner, setSharedListOwner] = useState<string | null>(null);
   const [remixCount, setRemixCount] = useState(0);
-  const [viewMode, setViewMode] = useState<'creator' | 'community' | 'compare'>('creator');
+  const [viewMode, setViewMode] = useState<ViewMode>('creator');
   const [communityItems, setCommunityItems] = useState<Item[] | null>(null);
   const [compareItems, setCompareItems] = useState<Item[] | null>(null);
   const [isLoadingCommunity, setIsLoadingCommunity] = useState(false);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  const tiers = useTierStore((state) => state.tiers);
-  const items = useTierStore((state) => state.items);
-  const boardBackground = useTierStore((state) => state.boardBackground);
-  const theme = useTierStore((state) => state.theme);
-  const reorderTiers = useTierStore((state) => state.reorderTiers);
-  const moveItem = useTierStore((state) => state.moveItem);
-  const addTier = useTierStore((state) => state.addTier);
-  const hydrateBoardState = useTierStore((state) => state.hydrateBoardState);
-  const returnItemsToPool = useTierStore((state) => state.returnItemsToPool);
+  const tiers = useBoardStore((state) => state.tiers);
+  const items = useBoardStore((state) => state.items);
+  const reorderTiers = useBoardStore((state) => state.reorderTiers);
+  const moveItemStore = useBoardStore((state) => state.moveItem);
+  const addTier = useBoardStore((state) => state.addTier);
+  const returnItemsToPool = useBoardStore((state) => state.returnItemsToPool);
+  const boardBackground = usePrefsStore((state) => state.boardBackground);
+  const theme = usePrefsStore((state) => state.theme);
+
+  const refreshCurrentUser = useCallback(async () => {
+    try {
+      const supabase = getBrowserSupabaseClient();
+      const {
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
+
+      if (error) {
+        throw error;
+      }
+
+      setCurrentUserId(user?.id ?? null);
+    } catch (error) {
+      console.error('Error fetching Supabase user:', error);
+      setCurrentUserId(null);
+    }
+  }, []);
 
   useEffect(() => {
     setIsMounted(true);
+    cleanupLegacyTierStoreStorage();
   }, []);
 
   useEffect(() => {
-    let isActive = true;
-
-    ensureAnonymousSession()
-      .then((session) => {
-        if (isActive) {
-          setCurrentUserId(session?.user.id ?? null);
-        }
-      })
-      .catch((error) => {
-        console.error('Error initializing Supabase auth:', error);
-      });
-
-    const unsubscribe = subscribeToAuthState((session) => {
-      if (isActive) {
-        setCurrentUserId(session?.user.id ?? null);
-      }
-    });
-
-    return () => {
-      isActive = false;
-      unsubscribe();
-    };
-  }, []);
+    void refreshCurrentUser();
+  }, [refreshCurrentUser]);
 
   useEffect(() => {
     setCommunityItems(null);
     setCompareItems(null);
+    setHasStartedEditing(false);
+    setOriginalItems(null);
     setViewMode(routeState.compareId ? 'compare' : 'creator');
   }, [routeState.compareId, routeState.targetListId]);
 
   useEffect(() => {
     async function loadSharedList() {
+      // Dev-only mock viewer mode: ?mock=viewer
+      if (process.env.NODE_ENV === 'development' && searchParams.get('mock') === 'viewer') {
+        const mockTiers = [
+          { id: 's', label: 'S', color: '#ef4444' },
+          { id: 'a', label: 'A', color: '#f97316' },
+          { id: 'b', label: 'B', color: '#eab308' },
+          { id: 'c', label: 'C', color: '#22c55e' },
+        ];
+        const mockItems: Item[] = [
+          { id: 'm1', content: 'Mario', type: 'text', tierId: 's' },
+          { id: 'm2', content: 'Luigi', type: 'text', tierId: 's' },
+          { id: 'm3', content: 'Peach', type: 'text', tierId: 'a' },
+          { id: 'm4', content: 'Bowser', type: 'text', tierId: 'a' },
+          { id: 'm5', content: 'Toad', type: 'text', tierId: 'b' },
+          { id: 'm6', content: 'Yoshi', type: 'text', tierId: 'b' },
+          { id: 'm7', content: 'Wario', type: 'text', tierId: 'c' },
+          { id: 'm8', content: 'Waluigi', type: 'text', tierId: null },
+        ];
+        // Community has slightly different rankings to show diff arrows
+        const mockCommunityItems: Item[] = [
+          { id: 'm1', content: 'Mario', type: 'text', tierId: 's' },
+          { id: 'm2', content: 'Luigi', type: 'text', tierId: 'a' },  // moved down
+          { id: 'm3', content: 'Peach', type: 'text', tierId: 's' },  // moved up
+          { id: 'm4', content: 'Bowser', type: 'text', tierId: 'b' }, // moved down
+          { id: 'm5', content: 'Toad', type: 'text', tierId: 'a' },   // moved up
+          { id: 'm6', content: 'Yoshi', type: 'text', tierId: 'b' },
+          { id: 'm7', content: 'Wario', type: 'text', tierId: 'c' },
+          { id: 'm8', content: 'Waluigi', type: 'text', tierId: null },
+        ];
+        hydrateBoardState({
+          tiers: mockTiers,
+          items: mockItems,
+          itemSize: 'medium',
+          imageFit: 'cover',
+          boardBackground: 'theme-default',
+          theme: 'modern',
+        });
+        setOriginalItems(mockItems);
+        setRemixCount(12);
+        setCommunityItems(mockCommunityItems);
+        setSharedListOwner('mock-owner');
+        setIsViewer(true);
+        setHasSharedListContext(true);
+        return;
+      }
+
       if (!routeState.targetListId) {
-        setIsReadOnly(false);
+        setIsViewer(false);
         setSharedListOwner(null);
         setRemixCount(0);
         setViewMode('creator');
@@ -86,7 +139,7 @@ export function useTierListScreen() {
         if (!tierList) {
           setSharedListOwner(null);
           setRemixCount(0);
-          setIsReadOnly(false);
+          setIsViewer(false);
           return;
         }
 
@@ -95,18 +148,23 @@ export function useTierListScreen() {
         setSharedListOwner(tierList.ownerId);
 
         if (routeState.remixingId) {
-          setIsReadOnly(false);
+          setIsViewer(false);
           returnItemsToPool();
         } else {
-          setIsReadOnly(
-            deriveIsReadOnly({
-              targetListId: routeState.targetListId,
-              remixingId: routeState.remixingId,
-              ownerId: tierList.ownerId,
-              currentUserId,
-            })
-          );
+          const viewer = deriveIsViewer({
+            targetListId: routeState.targetListId,
+            remixingId: routeState.remixingId,
+            ownerId: tierList.ownerId,
+            currentUserId,
+          });
+          setIsViewer(viewer);
           setViewMode(routeState.compareId ? 'compare' : 'creator');
+
+          // Snapshot original items for diff indicators
+          if (viewer) {
+            setOriginalItems(tierList.boardState.items);
+            setHasSharedListContext(true);
+          }
         }
       } catch (error) {
         console.error('Error fetching shared list:', error);
@@ -120,24 +178,27 @@ export function useTierListScreen() {
     }
   }, [
     currentUserId,
-    hydrateBoardState,
     isMounted,
     returnItemsToPool,
+    refreshCurrentUser,
     routeState.compareId,
     routeState.remixingId,
     routeState.targetListId,
+    searchParams,
   ]);
 
   useEffect(() => {
-    setIsReadOnly(
-      deriveIsReadOnly({
-        targetListId: routeState.targetListId,
-        remixingId: routeState.remixingId,
-        ownerId: sharedListOwner,
-        currentUserId,
-      })
-    );
-  }, [currentUserId, routeState.remixingId, routeState.targetListId, sharedListOwner]);
+    // Don't override isViewer when in mock mode
+    if (process.env.NODE_ENV === 'development' && searchParams.get('mock') === 'viewer') return;
+
+    const viewer = deriveIsViewer({
+      targetListId: routeState.targetListId,
+      remixingId: routeState.remixingId,
+      ownerId: sharedListOwner,
+      currentUserId,
+    });
+    setIsViewer(viewer);
+  }, [currentUserId, routeState.remixingId, routeState.targetListId, searchParams, sharedListOwner]);
 
   useEffect(() => {
     async function loadCompareRemix() {
@@ -158,7 +219,10 @@ export function useTierListScreen() {
 
   useEffect(() => {
     async function loadCommunityConsensus() {
-      if (viewMode !== 'community' || communityItems !== null || !routeState.targetListId) return;
+      // Load eagerly for viewers with enough remixes, or on-demand when tab is selected
+      const shouldEagerLoad = isViewer && !hasStartedEditing && remixCount >= 3;
+      if (!shouldEagerLoad && viewMode !== 'community') return;
+      if (communityItems !== null || !routeState.targetListId) return;
 
       setIsLoadingCommunity(true);
       try {
@@ -178,7 +242,7 @@ export function useTierListScreen() {
     if (isMounted) {
       loadCommunityConsensus();
     }
-  }, [communityItems, isMounted, items, routeState.targetListId, tiers, viewMode]);
+  }, [communityItems, hasStartedEditing, isMounted, isViewer, items, remixCount, routeState.targetListId, tiers, viewMode]);
 
   useEffect(() => {
     if (isMounted) {
@@ -186,13 +250,40 @@ export function useTierListScreen() {
     }
   }, [isMounted, theme]);
 
+  // Wrap moveItem to detect first edit by a viewer
+  const moveItem = useCallback(
+    (
+      sourceTierId: string | null,
+      destTierId: string | null,
+      sourceIndex: number,
+      destIndex: number
+    ) => {
+      if (isViewer && !hasStartedEditing) {
+        setHasStartedEditing(true);
+        setViewMode('yours');
+      }
+      moveItemStore(sourceTierId, destTierId, sourceIndex, destIndex);
+    },
+    [isViewer, hasStartedEditing, moveItemStore]
+  );
+
+  const handleStartEditing = useCallback(() => {
+    setHasStartedEditing(true);
+    setViewMode('yours');
+  }, []);
+
   const effectiveItems =
     viewMode === 'community' && communityItems
       ? communityItems
       : viewMode === 'compare' && compareItems
         ? compareItems
-        : items;
-  const effectiveIsReadOnly = isReadOnly || viewMode === 'community' || viewMode === 'compare';
+        : viewMode === 'creator' && isViewer && hasStartedEditing && originalItems
+          ? originalItems
+          : items;
+
+  const effectiveIsReadOnly =
+    deriveIsReadOnly(viewMode) ||
+    (viewMode === 'creator' && isViewer && hasStartedEditing);
 
   const groupedItems = useMemo(() => {
     const grouped = new Map<string | null, Item[]>();
@@ -212,15 +303,22 @@ export function useTierListScreen() {
   return {
     addTier,
     boardBackground,
+    communityItems,
     effectiveIsReadOnly,
     groupedItems,
+    handleStartEditing,
+    hasSharedListContext,
+    hasStartedEditing,
     isLoadingCommunity,
     isLoadingShared,
     isMounted,
+    isViewer,
     items,
+    originalItems,
     remixCount,
     reorderTiers,
     routeState,
+    refreshCurrentUser,
     setViewMode,
     tiers,
     theme,

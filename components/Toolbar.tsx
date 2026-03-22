@@ -18,6 +18,7 @@ import {
   Check,
   Edit3,
   Send,
+  User,
 } from 'lucide-react';
 import {
   Button as RACButton,
@@ -89,6 +90,7 @@ interface Props {
   onSubmitRemix: () => void;
   onThemeChange: (theme: Theme) => void;
   onUndo: () => void;
+  onProfileClick?: () => void;
 }
 
 export const Toolbar = ({
@@ -123,6 +125,7 @@ export const Toolbar = ({
   onSubmitRemix,
   onThemeChange,
   onUndo,
+  onProfileClick,
 }: Props) => {
   const renderSettingsButton = (isActive: boolean, label: string, onPress: () => void) => (
     <button
@@ -423,6 +426,15 @@ export const Toolbar = ({
         >
           <Download size={18} />
           {isExporting ? 'Exporting...' : 'Export Image'}
+        </button>
+
+        <button
+          onClick={onProfileClick}
+          className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover border border-border-main text-text-main px-5 py-2.5 rounded-panel font-medium transition-all shadow-panel"
+          title="My Profile"
+        >
+          <User size={18} />
+          <span className="md:hidden">Profile</span>
         </button>
       </div>
     </header>

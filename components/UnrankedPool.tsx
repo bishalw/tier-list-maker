@@ -3,7 +3,7 @@ import { Droppable } from '@hello-pangea/dnd';
 import { Image as ImageIcon, Plus, Search } from 'lucide-react';
 import { Tier, Item } from '../types';
 import { DraggableItem } from './DraggableItem';
-import { useTierStore } from '../store/useTierStore';
+import { useBoardStore } from '../store/useBoardStore';
 
 interface Props {
   items: Item[];
@@ -17,14 +17,7 @@ export const UnrankedPool = memo(({ items, isReadOnly, originalItems, tiers, act
   const [textInput, setTextInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const addItems = useTierStore(state => state.addItems);
-  const itemSize = useTierStore(state => state.itemSize);
-
-  const sizeClasses = {
-    small: 'w-16 h-16 md:w-20 md:h-20',
-    medium: 'w-20 h-20 md:w-24 md:h-24',
-    large: 'w-24 h-24 md:w-32 md:h-32',
-  };
+  const addItems = useBoardStore(state => state.addItems);
 
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) return items;
@@ -174,14 +167,6 @@ export const UnrankedPool = memo(({ items, isReadOnly, originalItems, tiers, act
             ) : (
               filteredItems.map((item, idx) => (
                 <React.Fragment key={item.id}>
-                  {item.id === activeDragId && (
-                    <div
-                      className={`rounded-item border-2 border-dashed border-drag-highlight bg-drag-ghost opacity-50 ${
-                        item.type === 'image' ? sizeClasses[itemSize] : 'px-4 py-2 min-w-[80px] min-h-[40px]'
-                      }`}
-                      aria-hidden="true"
-                    />
-                  )}
                   <DraggableItem 
                     item={item} 
                     index={idx} 

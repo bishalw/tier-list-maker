@@ -2,7 +2,8 @@ import React, { memo } from 'react';
 import { Draggable } from '@hello-pangea/dnd';
 import { X, ArrowUp, ArrowDown, Minus } from 'lucide-react';
 import { Item, Tier } from '../types';
-import { useTierStore } from '../store/useTierStore';
+import { useBoardStore } from '../store/useBoardStore';
+import { usePrefsStore } from '../store/usePrefsStore';
 
 interface Props {
   item: Item;
@@ -14,9 +15,9 @@ interface Props {
 }
 
 export const DraggableItem = memo(({ item, index, isReadOnly, originalItem, tiers, activeDragId }: Props) => {
-  const deleteItem = useTierStore(state => state.deleteItem);
-  const itemSize = useTierStore(state => state.itemSize);
-  const imageFit = useTierStore(state => state.imageFit);
+  const deleteItem = useBoardStore(state => state.deleteItem);
+  const itemSize = usePrefsStore(state => state.itemSize);
+  const imageFit = usePrefsStore(state => state.imageFit);
 
   const sizeClasses = {
     small: 'w-16 h-16 md:w-20 md:h-20',
@@ -28,9 +29,9 @@ export const DraggableItem = memo(({ item, index, isReadOnly, originalItem, tier
   let rankDiff = 0;
   let showDiff = false;
   
-  if (originalItem && tiers) {
+  if (originalItem && tiers && originalItem.tierId !== null) {
     showDiff = true;
-    const originalRank = originalItem.tierId ? tiers.findIndex(t => t.id === originalItem.tierId) : tiers.length;
+    const originalRank = tiers.findIndex(t => t.id === originalItem.tierId);
     const currentRank = item.tierId ? tiers.findIndex(t => t.id === item.tierId) : tiers.length;
     
     // If either rank is -1 (tier not found, e.g., deleted tier), treat as unranked
@@ -49,8 +50,9 @@ export const DraggableItem = memo(({ item, index, isReadOnly, originalItem, tier
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`relative group ${isReadOnly ? '' : 'cursor-grab active:cursor-grabbing'} rounded-item overflow-hidden bg-surface-hover border flex items-center justify-center transition-[box-shadow,border-color] duration-150 ${
-            snapshot.isDragging ? 'border-drag-highlight ring-2 ring-drag-highlight shadow-floating z-50 scale-105 animate-glow-pulse' : 'border-border-main hover:ring-2 hover:ring-focus-ring'
+          style={provided.draggableProps.style}
+          className={`relative group ${isReadOnly ? '' : 'cursor-grab active:cursor-grabbing'} rounded-item overflow-hidden bg-surface-hover border flex items-center justify-center transition-[box-shadow,border-color,background-color,opacity] duration-150 ${
+            snapshot.isDragging ? 'border-drag-highlight ring-2 ring-drag-highlight shadow-floating z-50 animate-glow-pulse' : 'border-border-main hover:ring-2 hover:ring-focus-ring'
           } ${
             isDimmed ? 'opacity-40' : ''
           } ${
@@ -67,7 +69,7 @@ export const DraggableItem = memo(({ item, index, isReadOnly, originalItem, tier
             <span className="text-text-main font-medium text-center break-words max-w-full pointer-events-none px-2">{item.content}</span>
           )}
 
-          {showDiff && (
+          {showDiff && rankDiff !== 0 && (
             <div className={`absolute bottom-1 right-1 rounded-full p-0.5 flex items-center justify-center shadow-sm backdrop-blur-md ${
               rankDiff > 0 ? 'bg-success text-success-foreground' : 
               rankDiff < 0 ? 'bg-danger text-danger-foreground' : 

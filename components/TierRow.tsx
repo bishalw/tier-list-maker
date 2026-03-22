@@ -3,7 +3,6 @@ import { Droppable, Draggable } from '@hello-pangea/dnd';
 import { Settings, GripVertical } from 'lucide-react';
 import { Tier, Item } from '../types';
 import { DraggableItem } from './DraggableItem';
-import { useTierStore } from '../store/useTierStore';
 
 interface Props {
   tier: Tier;
@@ -14,26 +13,20 @@ interface Props {
   originalItems?: Item[];
   tiers?: Tier[];
   activeDragId?: string | null;
-  activeDragType?: 'item' | 'tier' | null;
 }
 
-export const TierRow = memo(({ tier, index, items, onEdit, isReadOnly, originalItems, tiers, activeDragId, activeDragType }: Props) => {
-  const itemSize = useTierStore(state => state.itemSize);
-
-  const sizeClasses = {
-    small: 'w-16 h-16 md:w-20 md:h-20',
-    medium: 'w-20 h-20 md:w-24 md:h-24',
-    large: 'w-24 h-24 md:w-32 md:h-32',
-  };
-
+export const TierRow = memo(({ tier, index, items, onEdit, isReadOnly, originalItems, tiers, activeDragId }: Props) => {
   return (
     <Draggable draggableId={tier.id} index={index} isDragDisabled={isReadOnly}>
       {(provided, snapshot) => (
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
-          className={`flex border-b border-border-main min-h-[100px] group/row bg-transparent transition-all duration-200 ${snapshot.isDragging ? 'z-50 shadow-panel scale-[1.01] bg-surface' : ''}`}
-          style={snapshot.isDragging ? { outline: `2px solid ${tier.color}`, outlineOffset: '-1px' } : undefined}
+          className={`flex border-b border-border-main min-h-[100px] group/row bg-transparent transition-[box-shadow,background-color,border-color,outline-color] duration-200 ${snapshot.isDragging ? 'z-50 shadow-panel bg-surface' : ''}`}
+          style={{
+            ...provided.draggableProps.style,
+            ...(snapshot.isDragging ? { outline: `2px solid ${tier.color}`, outlineOffset: '-1px' } : {}),
+          }}
         >
           {/* Tier Label (Drag Handle) */}
           <div
@@ -41,7 +34,7 @@ export const TierRow = memo(({ tier, index, items, onEdit, isReadOnly, originalI
             className={`w-24 md:w-32 flex-shrink-0 flex flex-col items-center justify-center relative group/label border-r border-border-main ${isReadOnly ? '' : 'cursor-grab active:cursor-grabbing'}`}
             style={{ backgroundColor: tier.color }}
           >
-            <span className="text-gray-900 font-black text-xl md:text-3xl text-center break-words w-full px-2 drop-shadow-sm pointer-events-none">
+            <span className="text-gray-900 font-black text-xl md:text-2xl text-center break-words hyphens-auto w-full px-2 drop-shadow-sm pointer-events-none" lang="en">
               {tier.label}
             </span>
 
@@ -82,14 +75,6 @@ export const TierRow = memo(({ tier, index, items, onEdit, isReadOnly, originalI
               >
                 {items.map((item, idx) => (
                   <React.Fragment key={item.id}>
-                    {item.id === activeDragId && (
-                      <div
-                        className={`rounded-item border-2 border-dashed border-drag-highlight bg-drag-ghost opacity-50 ${
-                          item.type === 'image' ? sizeClasses[itemSize] : 'px-4 py-2 min-w-[80px] min-h-[40px]'
-                        }`}
-                        aria-hidden="true"
-                      />
-                    )}
                     <DraggableItem 
                       item={item} 
                       index={idx} 
