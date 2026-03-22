@@ -41,3 +41,18 @@ export function createMiddlewareSupabaseClient(request: NextRequest, response: N
     },
   });
 }
+
+export function createRouteHandlerSupabaseClient(request: NextRequest, response: NextResponse) {
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
+      },
+      setAll(cookiesToSet) {
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
+        });
+      },
+    },
+  });
+}
