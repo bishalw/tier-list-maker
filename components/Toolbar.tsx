@@ -18,7 +18,6 @@ import {
   Check,
   Edit3,
   Send,
-  User,
 } from 'lucide-react';
 import {
   Button as RACButton,
@@ -90,7 +89,6 @@ interface Props {
   onSubmitRemix: () => void;
   onThemeChange: (theme: Theme) => void;
   onUndo: () => void;
-  onProfileClick?: () => void;
 }
 
 export const Toolbar = ({
@@ -125,7 +123,6 @@ export const Toolbar = ({
   onSubmitRemix,
   onThemeChange,
   onUndo,
-  onProfileClick,
 }: Props) => {
   const renderSettingsButton = (isActive: boolean, label: string, onPress: () => void) => (
     <button
@@ -143,16 +140,7 @@ export const Toolbar = ({
   );
 
   return (
-    <header className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-      <div>
-        <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-text-main">
-          Tier List Maker
-        </h1>
-        <p className="text-text-muted mt-1">
-          Rank your favorite items, characters, or anything else.
-        </p>
-      </div>
-      <div className="flex items-center gap-3 w-full md:w-auto flex-wrap md:flex-nowrap">
+    <div className="flex items-center gap-2 md:gap-3 flex-wrap md:flex-nowrap">
         {!isReadOnly && (
           <div className="flex items-center bg-surface rounded-panel p-1 shadow-panel">
             <button
@@ -176,9 +164,9 @@ export const Toolbar = ({
 
         {!isReadOnly && (
           <DialogTrigger>
-            <RACButton className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover text-text-main px-4 py-2.5 rounded-panel font-medium transition-all shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">
+            <RACButton className="flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover text-text-main p-2.5 md:px-4 md:py-2.5 rounded-panel font-medium transition-all shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">
               <Settings size={18} />
-              Settings
+              <span className="hidden md:inline">Settings</span>
             </RACButton>
             <Popover className="bg-surface border border-border-main rounded-panel shadow-panel w-[min(92vw,22rem)] max-h-[min(80vh,42rem)] overflow-auto data-[entering]:animate-in data-[entering]:fade-in data-[exiting]:animate-out data-[exiting]:fade-out">
               <Dialog className="outline-none p-4 flex flex-col gap-4">
@@ -282,9 +270,9 @@ export const Toolbar = ({
 
         {!isReadOnly && (
           <MenuTrigger>
-            <RACButton className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover text-text-main px-4 py-2.5 rounded-panel font-medium transition-all shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">
+            <RACButton className="flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover text-text-main p-2.5 md:px-4 md:py-2.5 rounded-panel font-medium transition-all shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">
               <LayoutTemplate size={18} />
-              Templates
+              <span className="hidden md:inline">Templates</span>
             </RACButton>
             <Popover className="bg-surface border border-border-main rounded-panel shadow-panel min-w-[240px] data-[entering]:animate-in data-[entering]:fade-in data-[exiting]:animate-out data-[exiting]:fade-out">
               <Menu className="p-1.5 outline-none flex flex-col gap-1">
@@ -308,9 +296,9 @@ export const Toolbar = ({
 
         {!isReadOnly && (
           <MenuTrigger>
-            <RACButton className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover text-text-main px-4 py-2.5 rounded-panel font-medium transition-all shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">
+            <RACButton className="flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover text-text-main p-2.5 md:px-4 md:py-2.5 rounded-panel font-medium transition-all shadow-panel outline-none focus-visible:ring-2 focus-visible:ring-focus-ring">
               <RotateCcw size={18} />
-              Reset...
+              <span className="hidden md:inline">Reset...</span>
             </RACButton>
             <Popover className="bg-surface border border-border-main rounded-panel shadow-panel min-w-[220px] data-[entering]:animate-in data-[entering]:fade-in data-[exiting]:animate-out data-[exiting]:fade-out">
               <Menu className="p-1.5 outline-none flex flex-col gap-1">
@@ -342,7 +330,7 @@ export const Toolbar = ({
           <DialogTrigger>
             <RACButton
               onPress={onShare}
-              className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-accent-foreground px-5 py-2.5 rounded-panel font-medium transition-all shadow-panel"
+              className="flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-accent-foreground px-4 py-2.5 rounded-panel font-medium transition-all shadow-panel"
             >
               <Share2 size={18} />
               {isSharing ? 'Saving...' : 'Share'}
@@ -401,10 +389,11 @@ export const Toolbar = ({
         {isReadOnly && (
           <button
             onClick={onRemix}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-accent-foreground px-5 py-2.5 rounded-panel font-medium transition-all shadow-panel"
+            className="flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-accent-foreground px-4 py-2.5 rounded-panel font-medium transition-all shadow-panel"
           >
             <Edit3 size={18} />
-            Remix this List
+            <span className="hidden md:inline">Remix this List</span>
+            <span className="md:hidden">Remix</span>
           </button>
         )}
 
@@ -412,7 +401,7 @@ export const Toolbar = ({
           <button
             onClick={onSubmitRemix}
             disabled={isSubmittingRemix}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-success hover:brightness-110 text-success-foreground px-5 py-2.5 rounded-panel font-medium transition-all shadow-panel disabled:opacity-70 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 bg-success hover:brightness-110 text-success-foreground px-4 py-2.5 rounded-panel font-medium transition-all shadow-panel disabled:opacity-70 disabled:cursor-not-allowed"
           >
             <Send size={18} />
             {isSubmittingRemix ? 'Submitting...' : 'Submit Remix'}
@@ -422,21 +411,13 @@ export const Toolbar = ({
         <button
           onClick={onExport}
           disabled={isExporting}
-          className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover border border-border-main text-text-main px-5 py-2.5 rounded-panel font-medium transition-all shadow-panel disabled:opacity-70 disabled:cursor-not-allowed"
+          className="flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover border border-border-main text-text-main p-2.5 md:px-4 md:py-2.5 rounded-panel font-medium transition-all shadow-panel disabled:opacity-70 disabled:cursor-not-allowed"
+          title="Export Image"
         >
           <Download size={18} />
-          {isExporting ? 'Exporting...' : 'Export Image'}
+          <span className="hidden md:inline">{isExporting ? 'Exporting...' : 'Export Image'}</span>
         </button>
 
-        <button
-          onClick={onProfileClick}
-          className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface hover:bg-surface-hover border border-border-main text-text-main px-5 py-2.5 rounded-panel font-medium transition-all shadow-panel"
-          title="My Profile"
-        >
-          <User size={18} />
-          <span className="md:hidden">Profile</span>
-        </button>
-      </div>
-    </header>
+    </div>
   );
 };

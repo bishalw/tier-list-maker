@@ -42,7 +42,17 @@ export const createTierListInputSchema = z.object({
 
 export const updateTierListInputSchema = z.object({
   id: z.string().min(1),
+  title: z.string().trim().min(1).max(100).optional(),
   boardState: tierBoardStateSchema,
+});
+
+export const renameTierListInputSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().trim().min(1).max(100),
+});
+
+export const deleteTierListInputSchema = z.object({
+  id: z.string().min(1),
 });
 
 export const submitRemixInputSchema = z.object({

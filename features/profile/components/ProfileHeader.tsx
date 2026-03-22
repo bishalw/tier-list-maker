@@ -6,6 +6,7 @@ interface ProfileHeaderProps {
   stats: {
     totalLists: number;
     totalRemixes: number;
+    totalViews: number;
   };
   onSignOut?: () => void;
 }
@@ -43,6 +44,10 @@ export function ProfileHeader({ displayName, avatarUrl, stats, onSignOut }: Prof
             <div className="flex flex-col">
               <span className="text-2xl font-black text-text-main">{stats.totalLists}</span>
               <span className="text-xs font-bold text-text-muted uppercase tracking-widest">Lists</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-2xl font-black text-text-main">{stats.totalViews}</span>
+              <span className="text-xs font-bold text-text-muted uppercase tracking-widest">Views</span>
             </div>
             <div className="flex flex-col">
               <span className="text-2xl font-black text-text-main">{stats.totalRemixes}</span>

@@ -3,6 +3,7 @@
 import React from 'react';
 import { DragDropContext, Droppable, type DropResult, type DragStart } from '@hello-pangea/dnd';
 import { Plus, User, Users } from 'lucide-react';
+import { InlineEditableTitle } from '../../../components/InlineEditableTitle';
 import { TierListToolbar } from './TierListToolbar';
 import { ViewerLandingLayout } from './ViewerLandingLayout';
 import { useTierListScreen } from '../hooks/useTierListScreen';
@@ -31,7 +32,9 @@ export function TierListScreen() {
     reorderTiers,
     routeState,
     refreshCurrentUser,
+    setTitle,
     setViewMode,
+    title,
     tiers,
     theme,
     viewMode,
@@ -96,12 +99,20 @@ export function TierListScreen() {
     <div className="min-h-screen bg-bg-main text-text-main font-sans selection:bg-accent/30 pb-20 transition-colors duration-300">
       <div className="sticky top-0 z-40 bg-bg-main/80 backdrop-blur-xl border-b border-border-main shadow-sm transition-colors duration-300">
         <div className="max-w-[1600px] mx-auto px-4 md:px-6 lg:px-8 py-4">
+          <div className="mb-2">
+            <InlineEditableTitle
+              value={title}
+              onChange={setTitle}
+              isReadOnly={effectiveIsReadOnly || (isViewer && !hasStartedEditing)}
+            />
+          </div>
           <TierListToolbar
             isReadOnly={effectiveIsReadOnly || (isViewer && !hasStartedEditing)}
             isViewer={isViewer}
             listId={routeState.targetListId}
             onAuthSuccess={refreshCurrentUser}
             remixingId={routeState.remixingId}
+            title={title}
           />
         </div>
       </div>

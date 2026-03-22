@@ -6,11 +6,15 @@ import Link from 'next/link';
 import { Plus } from 'lucide-react';
 import { ProfileHeader } from '@/features/profile/components/ProfileHeader';
 import { ProfileTierListCard } from '@/features/profile/components/ProfileTierListCard';
+import { ConfirmDeleteModal } from '@/components/ConfirmDeleteModal';
 import { useProfileScreen } from '@/features/profile/hooks/useProfileScreen';
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, displayName, isLoading, tierLists, stats, signOut } = useProfileScreen();
+  const {
+    user, displayName, isLoading, tierLists, stats, signOut, renameTierList,
+    deletingId, isDeleting, confirmDelete, cancelDelete, deleteTierList,
+  } = useProfileScreen();
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -40,6 +44,13 @@ export default function ProfilePage() {
           <h2 className="text-2xl font-black text-text-main uppercase italic tracking-tight">
             My Tier Lists
           </h2>
+          <Link
+            href="/create"
+            className="flex items-center gap-2 px-5 py-2.5 bg-accent hover:bg-accent-hover text-accent-foreground rounded-item font-black text-sm uppercase tracking-widest transition-all hover:-translate-y-0.5 shadow-panel"
+          >
+            <Plus size={18} />
+            Create New
+          </Link>
         </div>
 
         {tierLists.length === 0 ? (
@@ -66,13 +77,24 @@ export default function ProfilePage() {
               <ProfileTierListCard
                 key={tierList.id}
                 title={tierList.title}
+                views={tierList.viewCount}
                 remixes={tierList.remixCount}
                 onClick={() => router.push(`/create?list=${tierList.id}`)}
+                onRename={(newTitle) => renameTierList(tierList.id, newTitle)}
+                onDelete={() => confirmDelete(tierList.id)}
               />
             ))}
           </div>
         )}
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={deletingId !== null}
+        onClose={cancelDelete}
+        onConfirm={deleteTierList}
+        isDeleting={isDeleting}
+        title={tierLists.find((tl) => tl.id === deletingId)?.title ?? ''}
+      />
     </main>
   );
 }

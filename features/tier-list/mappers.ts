@@ -32,6 +32,7 @@ export function mapTierListRowToRecord(row: TierListRow): TierListRecord {
     title: row.title,
     description: row.description,
     remixCount: row.remix_count,
+    viewCount: row.view_count,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     boardState,
@@ -63,15 +64,17 @@ export function mapSearchParamsToRouteState(
   };
 }
 
-export function mapBoardStateToCreateInput(boardState: TierBoardState) {
+export function mapBoardStateToCreateInput(boardState: TierBoardState, title?: string) {
   return createTierListInputSchema.parse({
+    ...(title != null && { title }),
     boardState,
   });
 }
 
-export function mapBoardStateToUpdateInput(id: string, boardState: TierBoardState) {
+export function mapBoardStateToUpdateInput(id: string, boardState: TierBoardState, title?: string) {
   return updateTierListInputSchema.parse({
     id,
+    ...(title != null && { title }),
     boardState,
   });
 }

@@ -1,9 +1,12 @@
 'use server';
 
+import { headers } from 'next/headers';
 import { revalidatePath } from 'next/cache';
 import { createServerSupabaseClient } from '../../lib/supabase/server';
 import {
   createTierListInputSchema,
+  deleteTierListInputSchema,
+  renameTierListInputSchema,
   submitRemixInputSchema,
   updateTierListInputSchema,
 } from './schemas';
@@ -68,6 +71,7 @@ export async function updateTierListAction(input: unknown) {
   const { error } = await supabase
     .from('tier_lists')
     .update({
+      ...(parsed.title != null && { title: parsed.title }),
       tiers: parsed.boardState.tiers,
       items: parsed.boardState.items,
       theme: parsed.boardState.theme,
@@ -113,4 +117,80 @@ export async function submitRemixAction(input: unknown) {
 
   revalidatePath('/');
   return { remixId: data as string };
+}
+
+export async function recordViewAction(tierListId: string): Promise<void> {
+  try {
+    const supabase = await createServerSupabaseClient();
+    const headersList = await headers();
+    const forwarded = headersList.get('x-forwarded-for');
+    const ip = forwarded ? forwarded.split(',')[0].trim() : null;
+
+    await supabase.rpc('record_view', {
+      p_tier_list_id: tierListId,
+      p_viewer_ip: ip,
+    });
+  } catch {
+    // Fire-and-forget — swallow all errors
+  }
+}
+
+export async function deleteTierListAction(input: unknown) {
+  const parsed = deleteTierListInputSchema.parse(input);
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw userError;
+  }
+
+  if (!user) {
+    throw new Error('No authenticated Supabase user available.');
+  }
+
+  const { error } = await supabase
+    .from('tier_lists')
+    .delete()
+    .eq('id', parsed.id)
+    .eq('owner_id', user.id);
+
+  if (error) {
+    throw error;
+  }
+
+  revalidatePath('/');
+  revalidatePath('/profile');
+}
+
+export async function renameTierListAction(input: unknown) {
+  const parsed = renameTierListInputSchema.parse(input);
+  const supabase = await createServerSupabaseClient();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+
+  if (userError) {
+    throw userError;
+  }
+
+  if (!user) {
+    throw new Error('No authenticated Supabase user available.');
+  }
+
+  const { error } = await supabase
+    .from('tier_lists')
+    .update({ title: parsed.title })
+    .eq('id', parsed.id)
+    .eq('owner_id', user.id);
+
+  if (error) {
+    throw error;
+  }
+
+  revalidatePath('/');
+  return { id: parsed.id };
 }

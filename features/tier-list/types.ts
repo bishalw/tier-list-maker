@@ -12,6 +12,7 @@ export interface TierListRow {
   item_size: TierBoardState['itemSize'];
   image_fit: TierBoardState['imageFit'];
   remix_count: number;
+  view_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -37,6 +38,7 @@ export interface TierListRecord {
   title: string;
   description: string;
   remixCount: number;
+  viewCount: number;
   createdAt: string;
   updatedAt: string;
   boardState: TierBoardState;

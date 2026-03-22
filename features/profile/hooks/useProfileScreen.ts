@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { deleteTierListAction, renameTierListAction } from '@/features/tier-list/actions';
 import { getTierListsByOwner } from '@/features/tier-list/queries';
 import type { TierListRecord } from '@/features/tier-list/types';
 
@@ -29,9 +30,46 @@ export function useProfileScreen() {
       .finally(() => setIsLoadingLists(false));
   }, [user, isAuthLoading]);
 
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const confirmDelete = useCallback((id: string) => {
+    setDeletingId(id);
+  }, []);
+
+  const cancelDelete = useCallback(() => {
+    setDeletingId(null);
+  }, []);
+
+  const deleteTierList = useCallback(async () => {
+    if (!deletingId) return;
+    setIsDeleting(true);
+    try {
+      await deleteTierListAction({ id: deletingId });
+      setTierLists((prev) => prev.filter((tl) => tl.id !== deletingId));
+      setDeletingId(null);
+    } catch (err) {
+      console.error('Failed to delete tier list:', err);
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [deletingId]);
+
+  const renameTierList = useCallback(async (id: string, newTitle: string) => {
+    try {
+      await renameTierListAction({ id, title: newTitle });
+      setTierLists((prev) =>
+        prev.map((tl) => (tl.id === id ? { ...tl, title: newTitle } : tl))
+      );
+    } catch (err) {
+      console.error('Failed to rename tier list:', err);
+    }
+  }, []);
+
   const stats = {
     totalLists: tierLists.length,
     totalRemixes: tierLists.reduce((sum, tl) => sum + tl.remixCount, 0),
+    totalViews: tierLists.reduce((sum, tl) => sum + tl.viewCount, 0),
   };
 
   return {
@@ -41,5 +79,11 @@ export function useProfileScreen() {
     tierLists,
     stats,
     signOut,
+    renameTierList,
+    deletingId,
+    isDeleting,
+    confirmDelete,
+    cancelDelete,
+    deleteTierList,
   };
 }

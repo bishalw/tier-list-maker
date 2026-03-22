@@ -9,7 +9,6 @@ import {
 } from '../../../constants/theme';
 import { useTierListCommands } from '../hooks/useTierListCommands';
 import { RemixAuthModal } from './RemixAuthModal';
-import { useRouter } from 'next/navigation';
 
 interface Props {
   isReadOnly: boolean;
@@ -17,11 +16,11 @@ interface Props {
   listId: string | null;
   onAuthSuccess: () => Promise<void>;
   remixingId: string | null;
+  title: string;
 }
 
-export function TierListToolbar({ isReadOnly, isViewer, listId, onAuthSuccess, remixingId }: Props) {
-  const router = useRouter();
-  const commands = useTierListCommands({ isReadOnly, listId, onAuthSuccess, remixingId });
+export function TierListToolbar({ isReadOnly, isViewer, listId, onAuthSuccess, remixingId, title }: Props) {
+  const commands = useTierListCommands({ isReadOnly, listId, onAuthSuccess, remixingId, title });
 
   const returnItemsToPool = useBoardStore((state) => state.returnItemsToPool);
   const deleteAllItems = useBoardStore((state) => state.deleteAllItems);
@@ -73,7 +72,6 @@ export function TierListToolbar({ isReadOnly, isViewer, listId, onAuthSuccess, r
         onSubmitRemix={commands.handleSubmitRemix}
         onThemeChange={setTheme}
         onUndo={commands.undo}
-        onProfileClick={() => router.push('/profile')}
       />
 
       <RemixAuthModal

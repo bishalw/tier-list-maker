@@ -8,6 +8,7 @@ import { hydrateBoardState } from '../../../store/hydrateBoardState';
 import { useBoardStore } from '../../../store/useBoardStore';
 import { usePrefsStore } from '../../../store/usePrefsStore';
 import { mapSearchParamsToRouteState } from '../mappers';
+import { recordViewAction } from '../actions';
 import { getCommunityConsensus, getRemixById, getTierListById } from '../queries';
 import { deriveIsViewer, deriveIsReadOnly } from '../services/ownership';
 import type { Item } from '../../../types';
@@ -24,7 +25,9 @@ export function useTierListScreen() {
   const [hasStartedEditing, setHasStartedEditing] = useState(false);
   const [originalItems, setOriginalItems] = useState<Item[] | null>(null);
   const [sharedListOwner, setSharedListOwner] = useState<string | null>(null);
+  const [title, setTitle] = useState('My Tier List');
   const [remixCount, setRemixCount] = useState(0);
+  const [viewCount, setViewCount] = useState(0);
   const [viewMode, setViewMode] = useState<ViewMode>('creator');
   const [communityItems, setCommunityItems] = useState<Item[] | null>(null);
   const [compareItems, setCompareItems] = useState<Item[] | null>(null);
@@ -144,7 +147,9 @@ export function useTierListScreen() {
         }
 
         hydrateBoardState(tierList.boardState);
+        setTitle(tierList.title);
         setRemixCount(tierList.remixCount);
+        setViewCount(tierList.viewCount);
         setSharedListOwner(tierList.ownerId);
 
         if (routeState.remixingId) {
@@ -164,6 +169,8 @@ export function useTierListScreen() {
           if (viewer) {
             setOriginalItems(tierList.boardState.items);
             setHasSharedListContext(true);
+            // Fire-and-forget view recording
+            recordViewAction(routeState.targetListId).catch(() => {});
           }
         }
       } catch (error) {
@@ -303,6 +310,8 @@ export function useTierListScreen() {
   return {
     addTier,
     boardBackground,
+    title,
+    setTitle,
     communityItems,
     effectiveIsReadOnly,
     groupedItems,
@@ -316,6 +325,7 @@ export function useTierListScreen() {
     items,
     originalItems,
     remixCount,
+    viewCount,
     reorderTiers,
     routeState,
     refreshCurrentUser,

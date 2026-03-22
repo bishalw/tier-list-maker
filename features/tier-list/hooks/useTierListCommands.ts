@@ -21,10 +21,11 @@ interface Params {
   listId: string | null;
   remixingId: string | null;
   isReadOnly: boolean;
+  title: string;
   onAuthSuccess: () => Promise<void>;
 }
 
-export function useTierListCommands({ listId, remixingId, isReadOnly, onAuthSuccess }: Params) {
+export function useTierListCommands({ listId, remixingId, isReadOnly, title, onAuthSuccess }: Params) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -120,8 +121,8 @@ export function useTierListCommands({ listId, remixingId, isReadOnly, onAuthSucc
       const boardState = buildBoardState();
       const result =
         !listId || isReadOnly
-          ? await createTierListAction(mapBoardStateToCreateInput(boardState))
-          : await updateTierListAction(mapBoardStateToUpdateInput(listId, boardState));
+          ? await createTierListAction(mapBoardStateToCreateInput(boardState, title))
+          : await updateTierListAction(mapBoardStateToUpdateInput(listId, boardState, title));
 
       const url = `${window.location.origin}/create?list=${result.id}`;
       setShareUrl(url);
@@ -131,7 +132,7 @@ export function useTierListCommands({ listId, remixingId, isReadOnly, onAuthSucc
     } finally {
       setIsSharing(false);
     }
-  }, [buildBoardState, isReadOnly, listId]);
+  }, [buildBoardState, isReadOnly, listId, title]);
 
   const handleShare = async () => {
     try {

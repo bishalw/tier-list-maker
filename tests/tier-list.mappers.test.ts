@@ -33,6 +33,7 @@ test('mapTierListRowToRecord maps db shape to board state shape', () => {
     item_size: 'medium',
     image_fit: 'cover',
     remix_count: 2,
+    view_count: 5,
     created_at: '2026-03-16T00:00:00Z',
     updated_at: '2026-03-16T00:00:00Z',
   });
@@ -40,4 +41,5 @@ test('mapTierListRowToRecord maps db shape to board state shape', () => {
   assert.equal(record.ownerId, 'user-1');
   assert.equal(record.boardState.boardBackground, THEME_DEFAULT_BOARD_BACKGROUND);
   assert.equal(record.remixCount, 2);
+  assert.equal(record.viewCount, 5);
 });
