@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { Pencil } from 'lucide-react';
 
 interface InlineEditableTitleProps {
   value: string;
@@ -38,13 +39,16 @@ export function InlineEditableTitle({ value, onChange, isReadOnly }: InlineEdita
     return (
       <button
         onClick={() => !isReadOnly && setIsEditing(true)}
-        className={`text-2xl md:text-3xl font-black text-text-main italic uppercase tracking-tighter text-left truncate max-w-lg ${
+        className={`group flex items-center gap-2 text-2xl md:text-3xl font-black text-text-main italic uppercase tracking-tighter text-left w-full ${
           isReadOnly ? 'cursor-default' : 'cursor-text hover:text-accent transition-colors'
         }`}
         disabled={isReadOnly}
         title={isReadOnly ? value : 'Click to edit title'}
       >
-        {value}
+        <span className="truncate pr-1">{value}</span>
+        {!isReadOnly && (
+          <Pencil size={16} className="shrink-0 opacity-0 group-hover:opacity-60 transition-opacity text-text-muted" />
+        )}
       </button>
     );
   }
@@ -62,7 +66,7 @@ export function InlineEditableTitle({ value, onChange, isReadOnly }: InlineEdita
           setIsEditing(false);
         }
       }}
-      className="text-2xl md:text-3xl font-black text-text-main italic uppercase tracking-tighter bg-transparent border-b-2 border-accent outline-none max-w-lg w-full"
+      className="text-2xl md:text-3xl font-black text-text-main italic uppercase tracking-tighter bg-transparent border-b-2 border-accent outline-none w-full"
       maxLength={100}
     />
   );
