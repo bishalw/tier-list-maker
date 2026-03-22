@@ -6,7 +6,7 @@ import { motion } from 'motion/react';
 
 interface ProfileTierListCardProps {
   title: string;
-  views: number;
+  views?: number;
   remixes: number;
   thumbnailUrl?: string;
   onClick?: () => void;
@@ -43,10 +43,12 @@ export function ProfileTierListCard({ title, views, remixes, thumbnailUrl, onCli
         </h3>
 
         <div className="mt-auto flex items-center gap-4 text-text-muted text-xs font-black uppercase tracking-widest">
-          <div className="flex items-center gap-1.5">
-            <Eye size={14} className="text-accent" />
-            <span>{views.toLocaleString()}</span>
-          </div>
+          {views !== undefined && (
+            <div className="flex items-center gap-1.5">
+              <Eye size={14} className="text-accent" />
+              <span>{views.toLocaleString()}</span>
+            </div>
+          )}
           <div className="flex items-center gap-1.5">
             <Copy size={14} className="text-warning" />
             <span>{remixes.toLocaleString()}</span>

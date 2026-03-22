@@ -50,6 +50,21 @@ export async function getRemixesByTierListId(tierListId: string): Promise<RemixR
   return (data ?? []).map((row) => mapRemixRowToRecord(row as RemixRow));
 }
 
+export async function getTierListsByOwner(ownerId: string): Promise<TierListRecord[]> {
+  const supabase = getBrowserSupabaseClient();
+  const { data, error } = await supabase
+    .from('tier_lists')
+    .select('*')
+    .eq('owner_id', ownerId)
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    throw error;
+  }
+
+  return (data ?? []).map((row) => mapTierListRowToRecord(row as TierListRow));
+}
+
 export async function getCommunityConsensus(params: {
   tierListId: string;
   items: Item[];

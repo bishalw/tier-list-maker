@@ -3,8 +3,11 @@
 import React from 'react';
 import Link from 'next/link';
 import { User } from 'lucide-react';
+import { useAuth } from '@/lib/hooks/useAuth';
 
 export function GlobalHeader() {
+  const { user, isLoading } = useAuth();
+
   return (
     <nav className="border-b border-border-main bg-surface sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between">
@@ -29,16 +32,26 @@ export function GlobalHeader() {
             href="/profile"
             className="flex items-center gap-2 px-3 py-1.5 rounded-item hover:bg-surface-hover text-text-muted hover:text-text-main transition-all font-bold text-[10px] uppercase tracking-[0.2em]"
           >
-            <User size={14} />
+            {user ? (
+              <div className="w-5 h-5 rounded-full bg-accent flex items-center justify-center text-accent-foreground text-[9px] font-black">
+                {(user.user_metadata?.full_name ?? user.email ?? 'U').charAt(0).toUpperCase()}
+              </div>
+            ) : (
+              <User size={14} />
+            )}
             <span className="hidden sm:inline">Profile</span>
           </Link>
-          <div className="w-px h-4 bg-border-main mx-1" />
-          <Link
-            href="/login"
-            className="bg-accent hover:bg-accent-hover text-accent-foreground px-4 py-1.5 rounded-item font-black text-[10px] uppercase tracking-[0.2em] shadow-panel hover:shadow-[var(--theme-accent-glow)] transition-all hover:-translate-y-0.5 active:translate-y-0"
-          >
-            Sign In
-          </Link>
+          {!isLoading && !user && (
+            <>
+              <div className="w-px h-4 bg-border-main mx-1" />
+              <Link
+                href="/login"
+                className="bg-accent hover:bg-accent-hover text-accent-foreground px-4 py-1.5 rounded-item font-black text-[10px] uppercase tracking-[0.2em] shadow-panel hover:shadow-[var(--theme-accent-glow)] transition-all hover:-translate-y-0.5 active:translate-y-0"
+              >
+                Sign In
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>
