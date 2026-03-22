@@ -1,6 +1,14 @@
 import React, { memo, useState, useRef, useMemo } from 'react';
 import { Droppable } from '@hello-pangea/dnd';
 import { Image as ImageIcon, Plus, Search } from 'lucide-react';
+import {
+  Button as RACButton,
+  Input,
+  Label,
+  SearchField,
+  TextArea,
+  TextField,
+} from 'react-aria-components';
 import { Tier, Item } from '../types';
 import { DraggableItem } from './DraggableItem';
 import { useBoardStore } from '../store/useBoardStore';
@@ -85,24 +93,31 @@ export const UnrankedPool = memo(({ items, isReadOnly, originalItems, tiers, act
             </span>
           </h2>
           
-          <div className="relative flex-1 max-w-[200px]">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+          <SearchField
+            aria-label="Search unranked items"
+            value={searchQuery}
+            onChange={setSearchQuery}
+            className="relative flex-1 max-w-[200px]"
+          >
+            <Search
+              size={14}
+              aria-hidden="true"
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none"
+            />
+            <Input
               placeholder="Search..."
               className="bg-surface border border-border-main rounded-item pl-9 pr-3 py-1.5 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-focus-ring w-full transition-all"
             />
-          </div>
+          </SearchField>
         </div>
 
         {/* Add Item Controls */}
         {!isReadOnly && (
           <div className="flex flex-col gap-3">
             <form onSubmit={handleAddTextItem} className="flex items-start gap-2 w-full">
-              <div className="relative flex-1">
-                <textarea
+              <TextField className="relative flex-1">
+                <Label className="sr-only">Add unranked items</Label>
+                <TextArea
                   value={textInput}
                   onChange={(e) => setTextInput(e.target.value)}
                   onKeyDown={(e) => {
@@ -115,14 +130,15 @@ export const UnrankedPool = memo(({ items, isReadOnly, originalItems, tiers, act
                   className="bg-surface border border-border-main rounded-item px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-focus-ring w-full min-h-[40px] max-h-[150px] resize-y"
                   rows={1}
                 />
-              </div>
-              <button
+              </TextField>
+              <RACButton
                 type="submit"
-                disabled={!textInput.trim()}
-                className="bg-surface hover:bg-surface-hover disabled:opacity-50 disabled:cursor-not-allowed text-text-main p-2 rounded-item transition-colors h-[40px] flex-shrink-0 border border-border-main"
+                aria-label="Add items"
+                isDisabled={!textInput.trim()}
+                className="bg-surface hover:bg-surface-hover disabled:opacity-50 disabled:cursor-not-allowed text-text-main p-2 rounded-item transition-colors h-[40px] flex-shrink-0 border border-border-main outline-none focus-visible:ring-2 focus-visible:ring-focus-ring"
               >
                 <Plus size={18} />
-              </button>
+              </RACButton>
             </form>
 
             <input
