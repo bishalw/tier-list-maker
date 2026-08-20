@@ -14,13 +14,29 @@ interface Props {
   isReadOnly: boolean;
   isViewer: boolean;
   listId: string | null;
+  listUpdatedAt: string | null;
   onAuthSuccess: () => Promise<void>;
   remixingId: string | null;
   title: string;
 }
 
-export function TierListToolbar({ isReadOnly, isViewer, listId, onAuthSuccess, remixingId, title }: Props) {
-  const commands = useTierListCommands({ isReadOnly, listId, onAuthSuccess, remixingId, title });
+export function TierListToolbar({
+  isReadOnly,
+  isViewer,
+  listId,
+  listUpdatedAt,
+  onAuthSuccess,
+  remixingId,
+  title,
+}: Props) {
+  const commands = useTierListCommands({
+    isReadOnly,
+    listId,
+    listUpdatedAt,
+    onAuthSuccess,
+    remixingId,
+    title,
+  });
 
   const returnItemsToPool = useBoardStore((state) => state.returnItemsToPool);
   const deleteAllItems = useBoardStore((state) => state.deleteAllItems);
@@ -73,6 +89,21 @@ export function TierListToolbar({ isReadOnly, isViewer, listId, onAuthSuccess, r
         onThemeChange={setTheme}
         onUndo={commands.undo}
       />
+
+      {commands.commandError && (
+        <div
+          role="alert"
+          className="mt-3 flex items-start justify-between gap-4 bg-danger-soft border border-danger text-danger-foreground px-4 py-3 rounded-panel"
+        >
+          <p className="text-sm">{commands.commandError}</p>
+          <button
+            onClick={commands.clearCommandError}
+            className="text-sm font-medium underline underline-offset-4 shrink-0"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <RemixAuthModal
         isOpen={commands.showAuthModal}

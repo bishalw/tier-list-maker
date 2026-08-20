@@ -14,6 +14,7 @@ export default function ProfilePage() {
   const {
     user, displayName, isLoading, tierLists, stats, signOut, renameTierList,
     deletingId, isDeleting, confirmDelete, cancelDelete, deleteTierList,
+    errorMessage, clearErrorMessage,
   } = useProfileScreen();
 
   useEffect(() => {
@@ -39,6 +40,21 @@ export default function ProfilePage() {
           stats={stats}
           onSignOut={signOut}
         />
+
+        {errorMessage && (
+          <div
+            role="alert"
+            className="mb-6 flex items-start justify-between gap-4 bg-danger-soft border border-danger text-text-main px-4 py-3 rounded-panel"
+          >
+            <p className="text-sm">{errorMessage}</p>
+            <button
+              onClick={clearErrorMessage}
+              className="text-sm font-medium underline underline-offset-4 shrink-0"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
 
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-black text-text-main uppercase italic tracking-tight">

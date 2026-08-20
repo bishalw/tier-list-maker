@@ -4,77 +4,74 @@ import { useStore } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { createStore } from 'zustand/vanilla';
 import type { BoardBackground, ImageFit, ItemSize, Theme } from '../types';
-import { THEME_DEFAULT_BOARD_BACKGROUND } from '../constants/theme';
+import { getPersistStorage } from './persistStorage';
+import {
+  DEFAULT_PREFS,
+  isImageFit,
+  isItemSize,
+  isTheme,
+  sanitizeBoardBackground,
+  sanitizePrefs,
+  type PrefsSnapshot,
+} from './prefsInvariants';
 
 const PREFS_STORAGE_KEY = 'tier-list-prefs-storage';
+const PREFS_STORAGE_VERSION = 1;
 const PREFS_STORE_GLOBAL_KEY = '__tier_list_prefs_store__';
 
-const noopStorage = {
-  getItem: () => null,
-  setItem: () => undefined,
-  removeItem: () => undefined,
-};
-
-interface PrefsState {
-  theme: Theme;
-  boardBackground: BoardBackground;
-  itemSize: ItemSize;
-  imageFit: ImageFit;
+interface PrefsState extends PrefsSnapshot {
   setTheme: (theme: Theme) => void;
   setBoardBackground: (color: string) => void;
   resetBoardBackground: () => void;
   setItemSize: (size: ItemSize) => void;
   setImageFit: (fit: ImageFit) => void;
+  replacePrefs: (prefs: Partial<PrefsSnapshot>) => void;
 }
 
 const noop = () => {};
 const fallbackPrefsState: PrefsState = {
-  theme: 'modern',
-  boardBackground: THEME_DEFAULT_BOARD_BACKGROUND,
-  itemSize: 'medium',
-  imageFit: 'cover',
+  ...DEFAULT_PREFS,
   setTheme: noop as PrefsState['setTheme'],
   setBoardBackground: noop as PrefsState['setBoardBackground'],
   resetBoardBackground: noop,
   setItemSize: noop as PrefsState['setItemSize'],
   setImageFit: noop as PrefsState['setImageFit'],
+  replacePrefs: noop as PrefsState['replacePrefs'],
 };
 
-function getPersistStorage() {
-  try {
-    if (
-      typeof window !== 'undefined' &&
-      typeof window.localStorage?.getItem === 'function' &&
-      typeof window.localStorage?.setItem === 'function' &&
-      typeof window.localStorage?.removeItem === 'function'
-    ) {
-      return window.localStorage;
-    }
-  } catch {
-    // Accessing localStorage can throw in some browser privacy modes.
-  }
-
-  return noopStorage;
+function partializePrefsState(state: PrefsState): PrefsSnapshot {
+  return {
+    theme: state.theme,
+    boardBackground: state.boardBackground,
+    itemSize: state.itemSize,
+    imageFit: state.imageFit,
+  };
 }
 
 function createPrefsStore() {
   return createStore<PrefsState>()(
     persist(
       (set) => ({
-        theme: 'modern',
-        boardBackground: THEME_DEFAULT_BOARD_BACKGROUND,
-        itemSize: 'medium',
-        imageFit: 'cover',
-        setTheme: (theme) => set({ theme }),
-        setBoardBackground: (color) => set({ boardBackground: color as BoardBackground }),
-        resetBoardBackground: () => set({ boardBackground: THEME_DEFAULT_BOARD_BACKGROUND }),
-        setItemSize: (size) => set({ itemSize: size }),
-        setImageFit: (fit) => set({ imageFit: fit }),
+        ...DEFAULT_PREFS,
+        setTheme: (theme) => set(isTheme(theme) ? { theme } : {}),
+        setBoardBackground: (color: string) =>
+          set({ boardBackground: sanitizeBoardBackground(color) }),
+        resetBoardBackground: () => set({ boardBackground: DEFAULT_PREFS.boardBackground }),
+        setItemSize: (size) => set(isItemSize(size) ? { itemSize: size } : {}),
+        setImageFit: (fit) => set(isImageFit(fit) ? { imageFit: fit } : {}),
+        replacePrefs: (prefs) => set(sanitizePrefs({ ...DEFAULT_PREFS, ...prefs })),
       }),
       {
         name: PREFS_STORAGE_KEY,
+        version: PREFS_STORAGE_VERSION,
         storage: createJSONStorage(getPersistStorage),
         skipHydration: true,
+        partialize: partializePrefsState,
+        migrate: (persistedState) => persistedState as PrefsSnapshot,
+        merge: (persistedState, currentState) => ({
+          ...currentState,
+          ...sanitizePrefs(persistedState),
+        }),
       }
     )
   );
@@ -101,6 +98,11 @@ function getPrefsStore(): PrefsStoreApi {
 
 export const prefsStore = getPrefsStore();
 
+/** Returns preferences to their defaults, e.g. when leaving a shared list. */
+export function resetPrefsStore() {
+  prefsStore.setState({ ...DEFAULT_PREFS });
+}
+
 function getSafePrefsState(state: PrefsState | undefined): PrefsState {
   if (state) return state;
   const initial = prefsStore.getInitialState?.() as PrefsState | undefined;
@@ -114,4 +116,5 @@ export function usePrefsStore<T>(selector: (state: PrefsState) => T) {
   return useStore(prefsStore, (state) => selector(getSafePrefsState(state as PrefsState | undefined)));
 }
 
-export { PREFS_STORAGE_KEY };
+export { PREFS_STORAGE_KEY, PREFS_STORAGE_VERSION };
+export type { PrefsState };

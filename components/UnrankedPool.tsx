@@ -12,6 +12,12 @@ import {
 import { Tier, Item } from '../types';
 import { DraggableItem } from './DraggableItem';
 import { useBoardStore } from '../store/useBoardStore';
+import { createItemId } from '../lib/ids';
+import {
+  MAX_IMAGE_UPLOAD_BYTES,
+  MAX_ITEMS,
+  MAX_TEXT_ITEM_CONTENT_LENGTH,
+} from '../constants/board';
 
 interface Props {
   items: Item[];
@@ -25,8 +31,11 @@ interface Props {
 export const UnrankedPool = memo(({ items, isReadOnly, originalItems, tiers, activeDragId, onItemTap }: Props) => {
   const [textInput, setTextInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [addError, setAddError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const addItem = useBoardStore(state => state.addItem);
+  const addItems = useBoardStore(state => state.addItems);
+  const totalItemCount = useBoardStore(state => state.items.length);
+  const remainingCapacity = Math.max(0, MAX_ITEMS - totalItemCount);
 
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) return items;
@@ -43,19 +52,34 @@ export const UnrankedPool = memo(({ items, isReadOnly, originalItems, tiers, act
     e.preventDefault();
     if (!textInput.trim() || isReadOnly) return;
 
+    setAddError(null);
+
     const newContents = textInput
       .split(/[\n,]+/)
       .map(s => s.trim())
-      .filter(s => s.length > 0);
+      .filter(s => s.length > 0)
+      .map(s => s.slice(0, MAX_TEXT_ITEM_CONTENT_LENGTH));
 
-    const newItems: Item[] = newContents.map((content, idx) => ({
-      id: `item-${Date.now()}-${idx}-${Math.random()}`,
+    if (remainingCapacity === 0) {
+      setAddError(`This board already holds the maximum of ${MAX_ITEMS} items.`);
+      return;
+    }
+
+    const accepted = newContents.slice(0, remainingCapacity);
+    const newItems: Item[] = accepted.map((content) => ({
+      id: createItemId(),
       content,
       type: 'text',
       tierId: null,
     }));
 
-    newItems.forEach((item) => addItem(item));
+    // One store update for the whole paste, so undo treats it as a single step.
+    addItems(newItems);
+
+    if (accepted.length < newContents.length) {
+      setAddError(`Only ${accepted.length} of ${newContents.length} items fit — the board is full.`);
+    }
+
     setTextInput('');
   };
 
@@ -64,21 +88,61 @@ export const UnrankedPool = memo(({ items, isReadOnly, originalItems, tiers, act
     const files = e.target.files;
     if (!files) return;
 
-    Array.from(files).forEach((file) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          const newItem: Item = {
-            id: `item-${Date.now()}-${Math.random()}`,
-            content: event.target.result as string,
-            type: 'image',
-            tierId: null,
-          };
-          addItem(newItem);
+    setAddError(null);
+
+    const selected = Array.from(files);
+
+    // Images are stored inline as data URLs, so an unbounded upload would blow
+    // the localStorage quota and the size of every save.
+    const tooLarge = selected.filter((file) => file.size > MAX_IMAGE_UPLOAD_BYTES);
+    const notImages = selected.filter((file) => !file.type.startsWith('image/'));
+    const accepted = selected
+      .filter((file) => file.size <= MAX_IMAGE_UPLOAD_BYTES && file.type.startsWith('image/'))
+      .slice(0, remainingCapacity);
+
+    const rejectionMessages: string[] = [];
+    if (notImages.length > 0) {
+      rejectionMessages.push(`${notImages.length} file(s) were not images`);
+    }
+    if (tooLarge.length > 0) {
+      const limitMb = Math.round(MAX_IMAGE_UPLOAD_BYTES / 100_000) / 10;
+      rejectionMessages.push(`${tooLarge.length} file(s) were larger than ${limitMb}MB`);
+    }
+    if (accepted.length < selected.length - notImages.length - tooLarge.length) {
+      rejectionMessages.push('the board is full');
+    }
+    if (rejectionMessages.length > 0) {
+      setAddError(`Skipped: ${rejectionMessages.join(', ')}.`);
+    }
+
+    Promise.all(
+      accepted.map(
+        (file) =>
+          new Promise<Item | null>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              const content = event.target?.result;
+              resolve(
+                typeof content === 'string'
+                  ? { id: createItemId(), content, type: 'image', tierId: null }
+                  : null
+              );
+            };
+            reader.onerror = () => resolve(null);
+            reader.readAsDataURL(file);
+          })
+      )
+    )
+      .then((results) => {
+        const newItems = results.filter((item): item is Item => item !== null);
+        if (newItems.length > 0) {
+          addItems(newItems);
         }
-      };
-      reader.readAsDataURL(file);
-    });
+        if (newItems.length < accepted.length) {
+          setAddError('Some images could not be read.');
+        }
+      })
+      .catch(() => setAddError('Some images could not be read.'));
 
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
@@ -157,6 +221,12 @@ export const UnrankedPool = memo(({ items, isReadOnly, originalItems, tiers, act
               <ImageIcon size={16} />
               <span>Add Images</span>
             </button>
+
+            {addError && (
+              <p role="alert" className="text-xs text-danger">
+                {addError}
+              </p>
+            )}
           </div>
         )}
       </div>
