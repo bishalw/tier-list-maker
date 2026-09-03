@@ -45,11 +45,30 @@ export function getBoardSession(): BoardSession {
 
 /**
  * Loads a database-backed tier list without touching the persisted draft.
+ *
+ * `returnItemsToPool` empties the tiers as part of the load, for starting a
+ * remix. It has to happen inside the same hydration rather than as a follow-up
+ * action, or the emptying is recorded as a user edit and a single undo restores
+ * the creator's rankings onto the remixer's board.
  */
-export function enterRemoteBoardSession(listId: string, boardState: TierBoardState) {
+export function enterRemoteBoardSession(
+  listId: string,
+  boardState: TierBoardState,
+  options: { returnItemsToPool?: boolean } = {}
+) {
   setPersistWritesEnabled(false);
   writeSession({ kind: 'remote', listId });
-  hydrateBoardState(boardState);
+
+  hydrateBoardState(
+    options.returnItemsToPool
+      ? {
+          ...boardState,
+          items: boardState.items.map((item) =>
+            item.tierId === null ? item : { ...item, tierId: null }
+          ),
+        }
+      : boardState
+  );
 }
 
 /**

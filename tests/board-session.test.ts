@@ -87,6 +87,54 @@ test('leaving a shared list with no saved draft returns an empty board', async (
   assert.equal(prefsStore.getState().theme, 'modern');
 });
 
+test('starting a remix is not undoable back into the creator\'s rankings', () => {
+  enterRemoteBoardSession('list-1', SHARED_LIST, { returnItemsToPool: true });
+
+  assert.deepEqual(
+    boardStore.getState().items.map((item) => item.tierId),
+    [null],
+    'the remix board starts empty'
+  );
+
+  // Emptying the tiers is part of loading a remix, not an edit the remixer
+  // made. If it lands in the undo stack, one undo files the creator's own
+  // ranking as the remixer's submission.
+  assert.equal(boardStore.temporal.getState().pastStates.length, 0);
+
+  boardStore.temporal.getState().undo();
+  assert.deepEqual(
+    boardStore.getState().items.map((item) => item.tierId),
+    [null]
+  );
+});
+
+test('undo during a shared-list session cannot reach the persisted draft', () => {
+  boardStore.getState().addItem({ id: 'draft-1', content: 'My work', type: 'text', tierId: null });
+  const persistedDraft = memoryStorage.getItem(BOARD_STORAGE_KEY);
+
+  enterRemoteBoardSession('list-1', SHARED_LIST);
+  boardStore.getState().addItem({ id: 'edit-1', content: 'Edit', type: 'text', tierId: null });
+  boardStore.temporal.getState().undo();
+  boardStore.temporal.getState().redo();
+
+  assert.equal(memoryStorage.getItem(BOARD_STORAGE_KEY), persistedDraft);
+});
+
+test('redo cannot pull a previous board into a newly loaded list', () => {
+  boardStore.getState().addItem({ id: 'draft-1', content: 'My work', type: 'text', tierId: null });
+  boardStore.temporal.getState().undo();
+  assert.equal(boardStore.temporal.getState().futureStates.length, 1);
+
+  enterRemoteBoardSession('list-1', SHARED_LIST);
+
+  assert.equal(boardStore.temporal.getState().futureStates.length, 0);
+  boardStore.temporal.getState().redo();
+  assert.deepEqual(
+    boardStore.getState().items.map((item) => item.id),
+    ['shared-1']
+  );
+});
+
 test('a shared list is not undoable back into the visitor\'s board', () => {
   boardStore.getState().addItem({ id: 'draft-1', content: 'My work', type: 'text', tierId: null });
 

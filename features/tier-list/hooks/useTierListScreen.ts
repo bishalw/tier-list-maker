@@ -100,7 +100,6 @@ export function useTierListScreen() {
   const reorderTiers = useBoardStore((state) => state.reorderTiers);
   const moveItemStore = useBoardStore((state) => state.moveItem);
   const addTier = useBoardStore((state) => state.addTier);
-  const returnItemsToPool = useBoardStore((state) => state.returnItemsToPool);
   const boardBackground = usePrefsStore((state) => state.boardBackground);
   const theme = usePrefsStore((state) => state.theme);
 
@@ -205,14 +204,12 @@ export function useTierListScreen() {
           return;
         }
 
-        enterRemoteBoardSession(tierList.id, tierList.boardState);
+        enterRemoteBoardSession(tierList.id, tierList.boardState, {
+          returnItemsToPool: Boolean(routeState.remixingId),
+        });
         setListRecord(tierList);
         setTitle(tierList.title);
         setLoadStatus('ready');
-
-        if (routeState.remixingId) {
-          returnItemsToPool();
-        }
       } catch (error) {
         console.error('Error fetching shared list:', error);
         if (isCurrent()) {
@@ -221,7 +218,7 @@ export function useTierListScreen() {
         }
       }
     })();
-  }, [isMockViewer, isMounted, returnItemsToPool, routeState.remixingId, targetListId]);
+  }, [isMockViewer, isMounted, routeState.remixingId, targetListId]);
 
   const ownerId = listRecord?.ownerId ?? null;
   const remixCount = listRecord?.remixCount ?? 0;
