@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { DragDropContext, Droppable, type DropResult, type DragStart } from '@hello-pangea/dnd';
 import { Plus, User, Users } from 'lucide-react';
 import { InlineEditableTitle } from '../../../components/InlineEditableTitle';
@@ -29,6 +30,8 @@ export function TierListScreen() {
     isMounted,
     isViewer,
     items,
+    listUpdatedAt,
+    loadStatus,
     originalItems,
     remixCount,
     reorderTiers,
@@ -91,6 +94,33 @@ export function TierListScreen() {
     );
   }
 
+  // A missing or unreadable list used to fall through to the visitor's own
+  // board, which then looked like the list they had followed a link to.
+  if (loadStatus === 'not-found' || loadStatus === 'error') {
+    const isMissing = loadStatus === 'not-found';
+
+    return (
+      <div className="min-h-screen bg-bg-main flex items-center justify-center px-4 text-text-main">
+        <div className="max-w-md text-center flex flex-col items-center gap-4">
+          <h1 className="text-3xl font-black uppercase italic tracking-tighter">
+            {isMissing ? 'Tier list not found' : 'Could not load this tier list'}
+          </h1>
+          <p className="text-text-muted">
+            {isMissing
+              ? 'This list may have been deleted, or the link is incorrect.'
+              : 'Something went wrong while loading this list. Check your connection and try again.'}
+          </p>
+          <Link
+            href="/create"
+            className="bg-accent hover:bg-accent-hover text-accent-foreground px-6 py-3 rounded-item font-black uppercase tracking-widest transition-colors"
+          >
+            Build your own
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   // Diff items: when viewing "yours" as a viewer, show diff against original
   // When viewing "compare", show diff against the store items (creator's)
   const diffOriginalItems =
@@ -115,6 +145,7 @@ export function TierListScreen() {
             isReadOnly={effectiveIsReadOnly || (isViewer && !hasStartedEditing)}
             isViewer={isViewer}
             listId={routeState.targetListId}
+            listUpdatedAt={listUpdatedAt}
             onAuthSuccess={refreshCurrentUser}
             remixingId={routeState.remixingId}
             title={title}

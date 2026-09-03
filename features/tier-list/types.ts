@@ -5,6 +5,7 @@ export interface TierListRow {
   owner_id: string;
   title: string;
   description: string;
+  is_public: boolean;
   tiers: Tier[];
   items: Item[];
   theme: TierBoardState['theme'];
@@ -37,6 +38,7 @@ export interface TierListRecord {
   ownerId: string;
   title: string;
   description: string;
+  isPublic: boolean;
   remixCount: number;
   viewCount: number;
   createdAt: string;

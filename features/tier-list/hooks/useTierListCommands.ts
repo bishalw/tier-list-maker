@@ -13,6 +13,7 @@ import {
   type AuthIntentType,
 } from '../../auth/authIntent';
 import { createTierListAction, submitRemixAction, updateTierListAction } from '../actions';
+import { ACTION_FAILURE_MESSAGES, isActionFailure } from '../results';
 import { mapBoardStateToCreateInput, mapBoardStateToUpdateInput } from '../mappers';
 import { boardStore, useBoardStore } from '../../../store/useBoardStore';
 import { prefsStore, usePrefsStore } from '../../../store/usePrefsStore';
@@ -22,10 +23,19 @@ interface Params {
   remixingId: string | null;
   isReadOnly: boolean;
   title: string;
+  /** `updated_at` of the loaded list, used to detect concurrent edits. */
+  listUpdatedAt: string | null;
   onAuthSuccess: () => Promise<void>;
 }
 
-export function useTierListCommands({ listId, remixingId, isReadOnly, title, onAuthSuccess }: Params) {
+export function useTierListCommands({
+  listId,
+  remixingId,
+  isReadOnly,
+  title,
+  listUpdatedAt,
+  onAuthSuccess,
+}: Params) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -36,11 +46,17 @@ export function useTierListCommands({ listId, remixingId, isReadOnly, title, onA
   const [shareUrl, setShareUrl] = useState('');
   const [copied, setCopied] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [commandError, setCommandError] = useState<string | null>(null);
+  const [savedUpdatedAt, setSavedUpdatedAt] = useState<string | null>(listUpdatedAt);
   const [pendingAuthIntentType, setPendingAuthIntentType] = useState<AuthIntentType | null>(null);
   const [hasResumedAuthIntent, setHasResumedAuthIntent] = useState(false);
 
   const theme = usePrefsStore((state) => state.theme);
   const boardBackground = usePrefsStore((state) => state.boardBackground);
+
+  useEffect(() => {
+    setSavedUpdatedAt(listUpdatedAt);
+  }, [listUpdatedAt]);
 
   const buildBoardState = useCallback(() => {
     const boardState = boardStore.getState();
@@ -117,22 +133,37 @@ export function useTierListCommands({ listId, remixingId, isReadOnly, title, onA
 
   const performShare = useCallback(async () => {
     setIsSharing(true);
+    setCommandError(null);
+
     try {
       const boardState = buildBoardState();
+
+      // Viewing someone else's list forks it into a new list rather than
+      // attempting an update that the owner check would reject.
       const result =
         !listId || isReadOnly
-          ? await createTierListAction(mapBoardStateToCreateInput(boardState, title))
-          : await updateTierListAction(mapBoardStateToUpdateInput(listId, boardState, title));
+          ? await createTierListAction(mapBoardStateToCreateInput(boardState, { title }))
+          : await updateTierListAction(
+              mapBoardStateToUpdateInput(listId, boardState, {
+                title,
+                ...(savedUpdatedAt != null && { expectedUpdatedAt: savedUpdatedAt }),
+              })
+            );
 
-      const url = `${window.location.origin}/create?list=${result.id}`;
-      setShareUrl(url);
+      if (isActionFailure(result)) {
+        setCommandError(result.message);
+        return;
+      }
+
+      setSavedUpdatedAt(result.data.updatedAt);
+      setShareUrl(`${window.location.origin}/create?list=${result.data.id}`);
     } catch (error) {
       console.error('Error sharing list:', error);
-      alert('Failed to share list. Please try again.');
+      setCommandError(ACTION_FAILURE_MESSAGES.unavailable);
     } finally {
       setIsSharing(false);
     }
-  }, [buildBoardState, isReadOnly, listId, title]);
+  }, [buildBoardState, isReadOnly, listId, savedUpdatedAt, title]);
 
   const handleShare = async () => {
     try {
@@ -145,12 +176,14 @@ export function useTierListCommands({ listId, remixingId, isReadOnly, title, onA
       await performShare();
     } catch (error) {
       console.error('Error sharing list:', error);
-      alert('Failed to share list. Please try again.');
+      setCommandError(ACTION_FAILURE_MESSAGES.unavailable);
     }
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(shareUrl);
+    void navigator.clipboard?.writeText(shareUrl).catch(() => {
+      setCommandError('Could not copy the link. Copy it from the address bar instead.');
+    });
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -166,6 +199,8 @@ export function useTierListCommands({ listId, remixingId, isReadOnly, title, onA
     if (!remixingId) return;
 
     setIsSubmittingRemix(true);
+    setCommandError(null);
+
     try {
       const boardState = buildBoardState();
       const result = await submitRemixAction({
@@ -173,10 +208,15 @@ export function useTierListCommands({ listId, remixingId, isReadOnly, title, onA
         items: boardState.items,
       });
 
-      router.push(`/create?list=${remixingId}&compare=${result.remixId}`);
+      if (isActionFailure(result)) {
+        setCommandError(result.message);
+        return;
+      }
+
+      router.push(`/create?list=${remixingId}&compare=${result.data.remixId}`);
     } catch (error) {
       console.error('Error submitting remix:', error);
-      alert('Failed to submit remix. Please try again.');
+      setCommandError(ACTION_FAILURE_MESSAGES.unavailable);
     } finally {
       setIsSubmittingRemix(false);
     }
@@ -195,7 +235,7 @@ export function useTierListCommands({ listId, remixingId, isReadOnly, title, onA
       await performSubmitRemix();
     } catch (error) {
       console.error('Error submitting remix:', error);
-      alert('Failed to submit remix. Please try again.');
+      setCommandError(ACTION_FAILURE_MESSAGES.unavailable);
     }
   };
 
@@ -263,6 +303,8 @@ export function useTierListCommands({ listId, remixingId, isReadOnly, title, onA
   return {
     authNextPath: buildNextPath(),
     canUndo: pastStates.length > 0,
+    commandError,
+    clearCommandError: () => setCommandError(null),
     canRedo: futureStates.length > 0,
     copied,
     isExporting,
